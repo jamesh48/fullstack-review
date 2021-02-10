@@ -8,16 +8,16 @@ let repoSchema = mongoose.Schema({
 
 let Repo = mongoose.model('Repo', repoSchema);
 
-let save = (/* TODO */) => {
+let save = (userName) => {
   const connection = mongoose.connection;
   var repo = new Repo({
-    username: 'James',
+    username: userName,
     description: 'Is Awesome'
   })
 
   repo.save()
     .then((results) => {
-      console.log('james is awesome');
+      console.log(results);
     })
     .catch((err) => {
       console.log(err);
