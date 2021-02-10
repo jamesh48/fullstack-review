@@ -1,8 +1,9 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const axios = require('axios');
-const save = require('../database/index.js')
-
+const save = require('../database/index.js').save
+const Repo = require('../database/index.js').Repo;
 router.post('/repos', function (req, res) {
   // TODO - your code here!
   // This route should take the github username provided
@@ -15,9 +16,12 @@ router.post('/repos', function (req, res) {
 
   return axios(config)
     .then((results) => {
-      console.log(results.length);
-      save(ghUsername)
-      // console.log(results);
+      results.data.forEach(entry => {
+        save(entry, ghUsername);
+      })
+    })
+    .then(() => {
+      res.status(200).send('success');
     })
     .catch((err) => {
       console.log(err);
@@ -27,8 +31,17 @@ router.post('/repos', function (req, res) {
 });
 
 router.get('/repos', function (req, res) {
+  console.log('hello')
   // TODO - your code here!
   // This route should send back the top 25 repos
+  const connection = mongoose.connection;
+  Repo.find({})
+    .then((results) => {
+      res.status(200).send(results);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    })
 });
 
 router.get('/dropCollections', (req, res) => {
@@ -36,16 +49,23 @@ router.get('/dropCollections', (req, res) => {
   connection.db.listCollections().toArray((err, names) => {
     if (err) {
       console.log(err);
+      res.status(500).json({ error: err });
     } else {
-      for (let i = 0; i < names.length; i++) {
-        console.log(names[i].name)
-        mongoose.connection.db.dropCollection(names[i].name, (err, result) => {
-          if (err) {
-            console.log(err);
-          } else {
-            console.log(names[i].name + ' Dropped!');
-          }
-        })
+      if (names.length === 0) {
+        res.status(200).send('No Collections to Drop!')
+      } else {
+        for (let i = 0; i < names.length; i++) {
+          console.log(names[i].name)
+          mongoose.connection.db.dropCollection(names[i].name, (err, result) => {
+            if (err) {
+              console.log(err);
+              res.status(500).json({ error: err });
+            } else {
+              console.log(names[i].name + ' Dropped!');
+            }
+          })
+        }
+        res.status(200).send('Dropped Collections!');
       }
     }
   })

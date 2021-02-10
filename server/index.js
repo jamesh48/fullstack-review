@@ -3,7 +3,6 @@ let app = express();
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/fetcher');
 const router = require('./routes')
-const save = require('../database/index.js')
 app.use(express.static(__dirname + '/../client/dist'));
 app.use(express.json());
 
