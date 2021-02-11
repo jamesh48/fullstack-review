@@ -22,13 +22,13 @@ let save = (entry, ghUsername, cb) => {
   const connection = mongoose.connection;
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count;
   console.log('before repo.findOne')
-  Repo.findOne({ 'id': entry.id }, (err, results) => {
-    console.log('inside Find One')
-    if (err) {
-      console.log(err);
-      cb(err)
-    } else {
-      if (results === null) {
+  // Repo.findOne({ 'id': entry.id }, (err, results) => {
+  //   console.log('inside Find One')
+  //   if (err) {
+  //     console.log(err);
+  //     cb(err)
+  //   } else {
+  //     if (results === null) {
         // cb(null, results);
         var repo = new Repo({
           author: ghUsername,
@@ -47,9 +47,9 @@ let save = (entry, ghUsername, cb) => {
           }
         })
       }
-    }
-  });
-}
+//     }
+//   });
+// }
 
 module.exports.save = save;
 module.exports.Repo = Repo;
