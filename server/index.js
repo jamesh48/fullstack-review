@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 // mongoose.connect('mongodb://localhost/fetcher');
 mongoose.connect('mongodb+srv://JamesH48:CloudlessSky82@cluster0.nkwrm.mongodb.net/fetcher?retryWrites=true&w=majority')
 const router = require('./routes')
-app.use(cors())
+// app.use(cors())
 app.use(express.static(__dirname + '/../client/dist'));
 app.use(express.json());
 
