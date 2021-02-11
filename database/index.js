@@ -5,35 +5,67 @@ let repoSchema = mongoose.Schema({
   author: String,
   repoName: String,
   description: String,
-  score: Number
+  url: String,
+  score: Number,
+  id: Number
 });
 
 const Repo = mongoose.model('Repo', repoSchema);
 
-let save = (entry, ghUsername) => {
+let save = (entry, ghUsername, cb) => {
   const connection = mongoose.connection;
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count;
 
-  var repo = new Repo({
-    author: ghUsername,
-    repoName: entry.name,
-    description: entry.description,
-    score: score
-  })
-
-  return repo.save((err, results) => {
+  Repo.findOne({ 'id': entry.id }, (err, results) => {
     if (err) {
-      return 'error'
+      console.log(err);
+      cb(err)
     } else {
-      return results;
+      if (results === null) {
+        // cb(null, results);
+        var repo = new Repo({
+          author: ghUsername,
+          repoName: entry.name,
+          description: entry.description,
+          url: entry.html_url,
+          score: score,
+          id: entry.id
+        })
+
+        repo.save((err, results) => {
+          if (err) {
+            cb(err)
+          } else {
+            cb(null, results)
+          }
+        })
+        // cb(null, repo);
+      }
     }
-  })
-    // .then((results) => {
-    //   console.log(results);
-    // })
-    // .catch((err) => {
-    //   console.log(err);
-    // })
+  });
+  // console.log('test')
+  // var repo = new Repo({
+  //   author: ghUsername,
+  //   repoName: entry.name,
+  //   description: entry.description,
+  //   score: score,
+  //   id: entry.id
+  // })
+
+
+  // return repo.save((err, results) => {
+  //   if (err) {
+  //     return 'error'
+  //   } else {
+  //     return results;
+  //   }
+  // })
+  // .then((results) => {
+  //   console.log(results);
+  // })
+  // .catch((err) => {
+  //   console.log(err);
+  // })
 
 }
 

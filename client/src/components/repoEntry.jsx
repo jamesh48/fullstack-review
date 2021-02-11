@@ -4,9 +4,9 @@ const RepoEntry = (props) => {
     <li className='repo-entry'>
       <div>
         <h4>{props.repo.author}</h4>
-        <p>{props.repo.repoName}</p>
+        <a target="_blank" href={props.repo.url}>{props.repo.repoName}</a>
         <p>{props.repo.description}</p>
-        <p>Score {props.repo.score}</p>
+        <p>Score: {props.repo.score}</p>
       </div>
     </li>
   )

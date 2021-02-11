@@ -17,16 +17,21 @@ router.post('/repos', function (req, res) {
 
   return axios(config)
     .then((results) => {
-      return results.data.sort((a, b) => {
-        var aScore = a.stargazers_count + a.watchers_count + a.forks_count;
-        var bScore = b.stargazers_count + b.watchers_count + b.forks_count;
+      return results.data
+        .sort((a, b) => {
+          var aScore = a.stargazers_count + a.watchers_count + a.forks_count;
+          var bScore = b.stargazers_count + b.watchers_count + b.forks_count;
 
-        return (bScore - aScore)
-      })
-      .slice(0, 25)
-      .map((entry, index) => {
-        return save(entry, ghUsername);
-      })
+          return (bScore - aScore)
+        })
+        .slice(0, 25)
+        .map((entry, index) => {
+          return new Promise((resolve, reject) => {
+            save(entry, ghUsername, (err, results) => {
+              resolve(results);
+            });
+          })
+        })
     })
     .then((arr) => {
       Promise.all(arr)
