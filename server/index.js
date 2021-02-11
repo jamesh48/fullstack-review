@@ -3,7 +3,7 @@ let app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
-const url = process.env.MONGOLAB_URI;
+const url = process.env.MONGODB_URI;
 const mongoose = require('mongoose');
 // mongoose.connect('mongodb://localhost/fetcher');
 mongoose.connect(url || 'mongodb://localhost/fetcher')
