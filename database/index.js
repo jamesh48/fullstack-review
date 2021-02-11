@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-dotenv.config();
+
+
 
 // const url = process.env.MONGODB_URI;
 
@@ -29,7 +29,6 @@ let save = (entry, ghUsername, cb) => {
       cb(err)
     } else {
       if (results === null) {
-        cb(null, results);
         var repo = new Repo({
           author: ghUsername,
           repoName: entry.name,
