@@ -4,6 +4,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import Search from './components/Search.jsx';
 import RepoList from './components/RepoList.jsx';
+import RepoEntry from './components/repoEntry.jsx';
 import DropCollections from './components/dropCollections.jsx';
 import styles from './components/app.css'
 import Validated from './components/validated.jsx';
@@ -83,19 +84,9 @@ class App extends React.Component {
   }
 
   renderRepos() {
-    return this.state.repos.map((repo) => {
-      console.log(repo);
-
-      return (
-        <li className='repo-entry'>
-          <div>
-            <h4>{repo.author}</h4>
-            <p>{repo.repoName}</p>
-            <p>{repo.description}</p>
-            <p>{repo.score}</p>
-          </div>
-        </li>
-      )
+    return this.state.repos.map((repo, index) => {
+      console.log(repo)
+      return <RepoEntry key={index} repo={repo}/>
     })
   }
   componentDidMount() {
