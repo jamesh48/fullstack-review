@@ -1,9 +1,12 @@
 const express = require('express');
 let app = express();
 const cors = require('cors');
+const dotenv = require('dotenv');
+dotenv.config();
+const url = process.env.MONGOLAB_URI;
 const mongoose = require('mongoose');
 // mongoose.connect('mongodb://localhost/fetcher');
-mongoose.connect('mongodb+srv://JamesH48:CloudlessSky82@cluster0.nkwrm.mongodb.net/fetcher?retryWrites=true&w=majority')
+mongoose.connect()
 const router = require('./routes')
 // app.use(cors())
 app.use(express.static(__dirname + '/../client/dist'));

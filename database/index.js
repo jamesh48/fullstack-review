@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb+srv://JamesH48:CloudlessSky82@cluster0.nkwrm.mongodb.net/fetcher?retryWrites=true&w=majority');
+const dotenv = require('../dotenv');
+dotenv.config();
+
+const url = process.env.MONGOLAB_URI;
+
+mongoose.connect(url);
 
 let repoSchema = mongoose.Schema({
   author: String,
