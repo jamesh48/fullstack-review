@@ -60,7 +60,7 @@ router.get('/repos', function (req, res) {
       res.status(200).send(results);
     })
     .catch((err) => {
-      res.status(500).send('hello');
+      res.status(500).send(err);
     })
 });
 
