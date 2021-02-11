@@ -8,6 +8,7 @@ const Repo = require('../database/index.js').Repo;
 router.post('/repos', function (req, res) {
   // TODO - your code here!
   var ghUsername = req.body.term;
+  console.log('github username ' + ghUsername);
   // and get the repo information from the github API, then
   const config = {
     method: 'GET',
@@ -46,10 +47,10 @@ router.post('/repos', function (req, res) {
 });
 
 router.get('/repos', function (req, res) {
-  console.log('hello')
   // TODO - your code here!
   // This route should send back the top 25 repos
   const connection = mongoose.connection;
+
   Repo.find({})
     .sort('-score')
     .limit(25)
