@@ -37,9 +37,17 @@ router.post('/repos', function (req, res) {
     .then((arr) => {
       Promise.all(arr)
         .then((finalResults) => {
+          finalResults = finalResults.filter(repo => {
+            return repo !== '_empty';
+          })
           console.log(finalResults.length)
           res.status(200).send(finalResults);
         })
+        // .catch((err) => {
+        //   console.log(err);
+        //   res.status(200).send('')
+        // })
+
     })
     .catch((err) => {
       console.log(err);

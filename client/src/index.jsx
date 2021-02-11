@@ -28,14 +28,15 @@ class App extends React.Component {
   getRepos() {
     const config = {
       method: 'GET',
-      url: 'https://whispering-retreat-11430.herokuapp.com/repos'
+      url: '/repos'
+
+      // url: 'https://whispering-retreat-11430.herokuapp.com/repos'
     }
 
     return axios(config)
       .then((results) => {
         this.setState({
           repos: results.data,
-          totalRepos: results.data.length
         })
       })
   }
@@ -43,7 +44,8 @@ class App extends React.Component {
   dropCollections() {
     const config = {
       method: 'GET',
-      url: 'https://whispering-retreat-11430.herokuapp.com/dropCollections',
+      url: '/dropCollections'
+      // url: 'https://whispering-retreat-11430.herokuapp.com/dropCollections',
     }
     return axios(config)
       .then((results) => {
@@ -61,7 +63,8 @@ class App extends React.Component {
     console.log(`${term} was searched`);
     const config = {
       method: 'POST',
-      url: 'https://whispering-retreat-11430.herokuapp.com/repos',
+      // url: 'https://whispering-retreat-11430.herokuapp.com/repos',
+      url: '/repos',
       data: {
         term: term
       },
@@ -72,16 +75,36 @@ class App extends React.Component {
 
     return axios(config)
       .then((results) => {
-        this.setState({
-          validated: true,
-          repos: results.data
-        }, () => {
-          setTimeout(() => {
-            this.setState({
-              validated: false
-            });
-          }, 2000)
-        });
+        if (Array.isArray(results.data)) {
+          console.log(results.data.length)
+          this.setState((prevState) => {
+
+            var newResults = [].concat(prevState.repos, results.data)
+            newResults = newResults
+            .filter((repo, index, arr) => {
+              return arr.indexOf(repo) === index;
+            })
+            .sort((a, b) => {return b.score - a.score})
+            .slice(0, 25);
+
+            var newResultCount = (results.data.length - prevState.repos.length);
+
+            return {
+              validated: true,
+              repos: newResults,
+              totalRepos: newResultCount
+            }
+          }, () => {
+            setTimeout(() => {
+              this.setState({
+                validated: false
+              });
+            }, 2000)
+          });
+        } else {
+          //do nothing!
+          console.log('nothing!');
+        }
       })
       .catch((err) => {
         console.log(err);
@@ -91,7 +114,7 @@ class App extends React.Component {
   renderRepos() {
     return this.state.repos.map((repo, index) => {
       console.log(repo)
-      return <RepoEntry key={index} repo={repo}/>
+      return <RepoEntry key={index} repo={repo} />
     })
   }
   componentDidMount() {
@@ -101,12 +124,12 @@ class App extends React.Component {
   render() {
     return (
       <div className='app'>
-        <p>This text will be clue</p>
         <h1>Github Fetcher</h1>
+        <Validated totalRepos={this.state.totalRepos} validated={this.state.validated} />
         <RepoList repos={this.state.repos} renderRepos={this.renderRepos} />
         <Search onSearch={this.search} />
         <DropCollections dropCollections={this.dropCollections} />
-        <Validated totalRepos = {this.state.totalRepos} validated={this.state.validated} />
+
       </div>)
   }
 }
