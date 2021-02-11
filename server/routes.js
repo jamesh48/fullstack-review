@@ -17,12 +17,22 @@ router.post('/repos', function (req, res) {
 
   return axios(config)
     .then((results) => {
-      results.data.forEach(entry => {
-        save(entry, ghUsername);
+      return results.data.sort((a, b) => {
+        var aScore = a.stargazers_count + a.watchers_count + a.forks_count;
+        var bScore = b.stargazers_count + b.watchers_count + b.forks_count;
+
+        return (bScore - aScore)
+      })
+      .slice(0, 25)
+      .map((entry, index) => {
+        return save(entry, ghUsername);
       })
     })
-    .then(() => {
-      res.status(200).send('success');
+    .then((arr) => {
+      Promise.all(arr)
+        .then((finalResults) => {
+          res.status(200).send(finalResults);
+        })
     })
     .catch((err) => {
       console.log(err);

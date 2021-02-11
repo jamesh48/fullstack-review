@@ -21,13 +21,19 @@ let save = (entry, ghUsername) => {
     score: score
   })
 
-  repo.save()
-    .then((results) => {
-      console.log(results);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
+  return repo.save((err, results) => {
+    if (err) {
+      return 'error'
+    } else {
+      return results;
+    }
+  })
+    // .then((results) => {
+    //   console.log(results);
+    // })
+    // .catch((err) => {
+    //   console.log(err);
+    // })
 
 }
 

@@ -67,10 +67,10 @@ class App extends React.Component {
     return axios(config)
       .then((results) => {
         this.setState({
-          validated: true
+          validated: true,
+          repos: results.data
         }, () => {
           setTimeout(() => {
-            console.log('hello');
             this.setState({
               validated: false
             });
@@ -92,6 +92,7 @@ class App extends React.Component {
             <h4>{repo.author}</h4>
             <p>{repo.repoName}</p>
             <p>{repo.description}</p>
+            <p>{repo.score}</p>
           </div>
         </li>
       )
