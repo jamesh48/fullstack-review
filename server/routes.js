@@ -26,6 +26,7 @@ router.post('/repos', function (req, res) {
         })
         .slice(0, 25)
         .map((entry, index) => {
+          console.log(entry);
           return new Promise((resolve, reject) => {
             save(entry, ghUsername, (err, results) => {
               resolve(results);
