@@ -1,9 +1,12 @@
 import React from 'react';
 const Validated = (props) => {
   return props.validated === true ?
-    <div>
+    <div className={props.importedRepos === 0 && props.updatedRepos === 0 ? 'invalidated' : 'validated'}>
       <h3>Database Updated!</h3>
-      <p>Total Repos Imported: {props.totalRepos}</p>
+      <p>{props.importedRepos} Repos Imported!</p>
+      {/* Updated On Client Side-> */}
+      <p>{props.updatedRepos} Repos Updated!</p>
+      <p>Total Repos: {props.totalRepos}</p>
     </div>
     : null
 }

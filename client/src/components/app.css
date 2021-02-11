@@ -1,5 +1,62 @@
+#repo-list-title-section {
+  padding-left: 1.5%;
+  display: inline-block;
+}
+
+#drop-collections-button {
+  display: inline-block;
+  border: 2px solid red;
+  background-color:red;
+}
+
+#repo-list-title {
+  text-decoration: underline;
+}
+
+#add-repo-section {
+  padding-left: 1.5%;
+}
+.validated {
+  margin-top: 1vh;
+  border: 2px solid darkslategrey;
+  padding-left: 0px;
+}
+
+.validated:nth-child(n){
+  background-color: green;
+  color: ivory;
+  width: 50vw;
+  border-radius: 5px;
+  padding: .25vh .5vw .25vh 1.5vw;
+}
+
+.invalidated:nth-child(n){
+  background-color: red;
+  color: ivory;
+  width: 50vw;
+  border-radius: 5px;
+  padding: .25vh .5vw .25vh 1.5vw;
+}
+
 .repo-entry {
   list-style-type: none;
   border: 1px solid black;
   padding-left: 10px;
 }
+
+
+.page-nos {
+  display: inline-block;
+  border: 1px solid black;
+  padding: 5px 10px 5px 10px;
+  color: ivory;
+  background-color: lightslategray;
+}
+
+.page-nos:hover {
+  background-color: darkslategrey;
+  color: ivory;
+  cursor: pointer;
+}
+
+

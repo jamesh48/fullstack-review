@@ -31,7 +31,7 @@ const save = (entry, ghUsername, cb) => {
             var repo = new Repo({
               author: ghUsername,
               repoName: entry.name,
-              description: entry.description,
+              description: entry.description || '',
               url: entry.html_url,
               score: score,
               id: entry.id,

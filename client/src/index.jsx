@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom';
 import axios from 'axios';
 import $ from 'jquery';
 import Search from './components/Search.jsx';
+import PageNumber from './components/PageNumber.jsx'
 import RepoList from './components/RepoList.jsx';
 import RepoEntry from './components/repoEntry.jsx';
-import DropCollections from './components/dropCollections.jsx';
 import styles from './components/app.css'
 import Validated from './components/validated.jsx';
+import PageNoUL from './components/PageNoUl.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -16,15 +17,30 @@ class App extends React.Component {
     this.dropCollections = this.dropCollections.bind(this);
     this.renderRepos = this.renderRepos.bind(this);
     this.getRepos = this.getRepos.bind(this);
+    this.renderPageNumbers = this.renderPageNumbers.bind(this);
+    this.handleClick = this.handleClick.bind(this);
 
-    this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
-    this.dropCollectionUrl = 'https://whispering-retreat-11430.herokuapp.com/dropCollections';
+
+    // this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
+    // this.dropCollectionUrl = 'https://whispering-retreat-11430.herokuapp.com/dropCollections';
+    this.repoUrl = '/repos';
+    this.dropCollectionUrl = '/dropCollections';
     this.state = {
       repos: [],
       validated: false,
-      totalRepos: 0
+      totalRepos: 0,
+      currentPage: 1,
+      reposPerPage: 5,
+      updatedRepos: 0,
+      importedRepos: 0
     }
 
+  }
+
+  handleClick(event) {
+    this.setState({
+      currentPage: Number(event.target.id)
+    })
   }
 
   getRepos() {
@@ -74,23 +90,28 @@ class App extends React.Component {
     return axios(config)
       .then((results) => {
         if (Array.isArray(results.data)) {
-          console.log(results.data.length)
 
           this.setState((prevState) => {
-
             var newResults = [].concat(prevState.repos, results.data)
-            .filter((repo, index, arr) => {
-              return arr.indexOf(repo) === index;
-            })
-            .sort((a, b) => {return b.score - a.score})
+              .sort((a, b) => {
+                // If Scores are equal, a deathmatch is initiated, with the repo with the longer description prevailing
+                if (b.score === a.score) {
+                  return b.description.length - a.description.length
+                }
+                return b.score - a.score
+              })
             .slice(0, 25);
 
-            var newResultCount = (results.data.length - prevState.repos.length);
+            const updatedRepoNum = newResults.filter((repo) => {return !prevState.repos.includes(repo)}).length;
+            const importedRepoNum = results.data.length;
+
 
             return {
               validated: true,
               repos: newResults,
-              totalRepos: newResultCount
+              totalRepos: newResults.length,
+              updatedRepos: updatedRepoNum,
+              importedRepos: importedRepoNum
             }
           }, () => {
             setTimeout(() => {
@@ -110,25 +131,51 @@ class App extends React.Component {
   }
 
   renderRepos() {
-    return this.state.repos.map((repo, index) => {
-      console.log(repo)
+    const { repos, currentPage, reposPerPage } = this.state;
+    const indexOfLastTodo = currentPage * reposPerPage;
+    const indexOfFirstTodo = indexOfLastTodo - reposPerPage;
+    const currentRepos = repos.slice(indexOfFirstTodo, indexOfLastTodo);
+
+    return currentRepos.map((repo, index) => {
       return <RepoEntry key={index} repo={repo} />
     })
+    // return this.state.repos.map((repo, index) => {
+    //   return <RepoEntry key={index} repo={repo} />
+    // })
   }
+
+  renderPageNumbers() {
+    const { repos, currentPage, reposPerPage } = this.state;
+    const { handleClick } = this;
+    const pageNumbers = [];
+    for (let i = 1; i <= Math.ceil(repos.length / reposPerPage); i++) {
+      pageNumbers.push(i)
+    }
+
+    return pageNumbers.map((number, index, arr) => {
+      return <PageNumber index={number} handleClick={handleClick} />
+    })
+
+  }
+
   componentDidMount() {
     this.getRepos();
   }
 
   render() {
+    const { validated, totalRepos, repos, updatedRepos, importedRepos } = this.state;
+    const { renderRepos, search, dropCollections, renderPageNumbers } = this;
     return (
       <div className='app'>
         <h1>Github Fetcher</h1>
-        <Validated totalRepos={this.state.totalRepos} validated={this.state.validated} />
-        <RepoList repos={this.state.repos} renderRepos={this.renderRepos} />
-        <Search onSearch={this.search} />
-        <DropCollections dropCollections={this.dropCollections} />
+        <Search onSearch={search} dropCollections={dropCollections} />
 
-      </div>)
+        <Validated totalRepos={totalRepos} updatedRepos = {updatedRepos} importedRepos ={importedRepos} validated={validated} />
+        <RepoList repos={repos} renderRepos={renderRepos} />
+        <PageNoUL renderPageNumbers={renderPageNumbers} />
+
+      </div>
+    )
   }
 }
 

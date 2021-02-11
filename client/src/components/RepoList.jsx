@@ -2,10 +2,12 @@ import React from 'react';
 
 const RepoList = (props) => (
   <div>
-    <h4> Repo List Component </h4>
-    <p>There are {props.repos.length} repos.</p>
+    <div id='repo-list-title-section'>
+      <h4 id='repo-list-title'> Repo List</h4>
+      <p>There are {props.repos.length} repos.</p>
+    </div>
     <ul>
-       {props.renderRepos()}
+      {props.renderRepos()}
     </ul>
   </div>
 )

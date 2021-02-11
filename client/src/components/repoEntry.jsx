@@ -7,7 +7,7 @@ const RepoEntry = (props) => {
         <a target="_blank" href={props.repo.url}>{props.repo.repoName}</a>
         <p>{props.repo.description}</p>
         <p>Score: {props.repo.score}</p>
-        <p>Contributors: {props.repo.contributors}</p>
+        {/* <p>Contributors: {props.repo.contributors}</p> */}
       </div>
     </li>
   )
