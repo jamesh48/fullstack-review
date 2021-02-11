@@ -99,7 +99,6 @@ class App extends React.Component {
   render() {
     return (
       <div className='app'>
-        <p>This text will be clue</p>
         <h1>Github Fetcher</h1>
         <RepoList repos={this.state.repos} renderRepos={this.renderRepos} />
         <Search onSearch={this.search} />

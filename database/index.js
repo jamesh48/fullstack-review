@@ -21,9 +21,7 @@ let save = (entry, ghUsername, cb) => {
   console.log('before connection');
   const connection = mongoose.connection;
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count;
-  console.log('before repo.findOne')
   Repo.findOne({ 'id': entry.id }, (err, results) => {
-    console.log('inside Find One')
     if (err) {
       console.log(err);
       cb(err)
@@ -37,7 +35,7 @@ let save = (entry, ghUsername, cb) => {
           score: score,
           id: entry.id
         })
-        console.log('saving');
+
         repo.save((err, results) => {
           if (err) {
             cb(err)
@@ -45,6 +43,8 @@ let save = (entry, ghUsername, cb) => {
             cb(null, results)
           }
         })
+      } else {
+        console.log('cancelling!');
       }
     }
   });
