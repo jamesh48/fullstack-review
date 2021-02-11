@@ -21,10 +21,10 @@ class App extends React.Component {
     this.handleClick = this.handleClick.bind(this);
 
 
-    // this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
-    // this.dropCollectionUrl = 'https://whispering-retreat-11430.herokuapp.com/dropCollections';
-    this.repoUrl = '/repos';
-    this.dropCollectionUrl = '/dropCollections';
+    this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
+    this.dropCollectionUrl = 'https://whispering-retreat-11430.herokuapp.com/dropCollections';
+    // this.repoUrl = '/repos';
+    // this.dropCollectionUrl = '/dropCollections';
     this.state = {
       repos: [],
       validated: false,
