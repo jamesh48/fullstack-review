@@ -18,9 +18,10 @@ let repoSchema = mongoose.Schema({
 const Repo = mongoose.model('Repo', repoSchema);
 
 let save = (entry, ghUsername, cb) => {
+  console.log('before connection');
   const connection = mongoose.connection;
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count;
-
+  console.log('before repo.findOne')
   Repo.findOne({ 'id': entry.id }, (err, results) => {
     if (err) {
       console.log(err);
