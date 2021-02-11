@@ -37,7 +37,7 @@ router.post('/repos', function (req, res) {
     .then((arr) => {
       Promise.all(arr)
         .then((finalResults) => {
-          console.log(finalResults)
+          console.log(finalResults.length)
           res.status(200).send(finalResults);
         })
     })

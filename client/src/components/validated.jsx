@@ -3,6 +3,7 @@ const Validated = (props) => {
   return props.validated === true ?
     <div>
       <h3>Database Updated!</h3>
+      <p>Total Repos Imported: {totalRepos}</p>
     </div>
     : null
 }
