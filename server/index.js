@@ -6,7 +6,7 @@ dotenv.config();
 const url = process.env.MONGOLAB_URI;
 const mongoose = require('mongoose');
 // mongoose.connect('mongodb://localhost/fetcher');
-mongoose.connect()
+mongoose.connect(url)
 const router = require('./routes')
 // app.use(cors())
 app.use(express.static(__dirname + '/../client/dist'));
