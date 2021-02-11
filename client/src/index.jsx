@@ -5,6 +5,7 @@ import $ from 'jquery';
 import Search from './components/Search.jsx';
 import RepoList from './components/RepoList.jsx';
 import DropCollections from './components/dropCollections.jsx';
+import styles from './components/app.css'
 import Validated from './components/validated.jsx';
 
 class App extends React.Component {
@@ -82,20 +83,34 @@ class App extends React.Component {
   }
 
   renderRepos() {
+    return this.state.repos.map((repo) => {
+      console.log(repo);
 
+      return (
+        <li className='repo-entry'>
+          <div>
+            <h4>{repo.author}</h4>
+            <p>{repo.repoName}</p>
+            <p>{repo.description}</p>
+          </div>
+        </li>
+      )
+    })
   }
   componentDidMount() {
     this.getRepos();
   }
 
   render() {
-    return (<div>
-      <h1>Github Fetcher</h1>
-      <RepoList repos={this.state.repos} />
-      <Search onSearch={this.search} />
-      <DropCollections dropCollections={this.dropCollections} />
-      <Validated validated={this.state.validated} />
-    </div>)
+    return (
+      <div className='app'>
+        <p>This text will be clue</p>
+        <h1>Github Fetcher</h1>
+        <RepoList repos={this.state.repos} renderRepos={this.renderRepos} />
+        <Search onSearch={this.search} />
+        <DropCollections dropCollections={this.dropCollections} />
+        <Validated validated={this.state.validated} />
+      </div>)
   }
 }
 

@@ -4,6 +4,7 @@ const router = express.Router();
 const axios = require('axios');
 const save = require('../database/index.js').save
 const Repo = require('../database/index.js').Repo;
+
 router.post('/repos', function (req, res) {
   // TODO - your code here!
   // This route should take the github username provided
@@ -36,7 +37,12 @@ router.get('/repos', function (req, res) {
   // This route should send back the top 25 repos
   const connection = mongoose.connection;
   Repo.find({})
+    .sort('-score')
+    .limit(25)
     .then((results) => {
+      results.forEach(result => {
+        console.log(result.score);
+      })
       res.status(200).send(results);
     })
     .catch((err) => {
