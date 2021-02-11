@@ -1,1 +1,1 @@
-node server-dev
+node server/index.js
