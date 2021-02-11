@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/fetcher');
+mongoose.connect('mongodb+srv://JamesH48:CloudlessSky82@cluster0.nkwrm.mongodb.net/fetcher?retryWrites=true&w=majority');
 
 let repoSchema = mongoose.Schema({
   author: String,
@@ -39,34 +39,9 @@ let save = (entry, ghUsername, cb) => {
             cb(null, results)
           }
         })
-        // cb(null, repo);
       }
     }
   });
-  // console.log('test')
-  // var repo = new Repo({
-  //   author: ghUsername,
-  //   repoName: entry.name,
-  //   description: entry.description,
-  //   score: score,
-  //   id: entry.id
-  // })
-
-
-  // return repo.save((err, results) => {
-  //   if (err) {
-  //     return 'error'
-  //   } else {
-  //     return results;
-  //   }
-  // })
-  // .then((results) => {
-  //   console.log(results);
-  // })
-  // .catch((err) => {
-  //   console.log(err);
-  // })
-
 }
 
 module.exports.save = save;

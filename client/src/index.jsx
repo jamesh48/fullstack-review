@@ -27,7 +27,7 @@ class App extends React.Component {
   getRepos() {
     const config = {
       method: 'GET',
-      url: '/repos'
+      url: 'https://whispering-retreat-11430.herokuapp.com//repos'
     }
 
     return axios(config)
@@ -41,7 +41,7 @@ class App extends React.Component {
   dropCollections() {
     const config = {
       method: 'GET',
-      url: '/dropCollections',
+      url: 'https://whispering-retreat-11430.herokuapp.com//dropCollections',
     }
     return axios(config)
       .then((results) => {
@@ -59,7 +59,7 @@ class App extends React.Component {
     console.log(`${term} was searched`);
     const config = {
       method: 'POST',
-      url: '/repos',
+      url: 'https://whispering-retreat-11430.herokuapp.com//repos',
       data: {
         term: term
       }

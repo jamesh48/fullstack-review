@@ -7,7 +7,6 @@ const Repo = require('../database/index.js').Repo;
 
 router.post('/repos', function (req, res) {
   // TODO - your code here!
-  // This route should take the github username provided
   var ghUsername = req.body.term;
   // and get the repo information from the github API, then
   const config = {
