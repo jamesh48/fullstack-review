@@ -62,6 +62,9 @@ class App extends React.Component {
       url: 'https://whispering-retreat-11430.herokuapp.com/repos',
       data: {
         term: term
+      },
+      headers: {
+        'Content-type': 'application/json'
       }
     }
 
