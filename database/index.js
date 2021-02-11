@@ -31,7 +31,7 @@ let save = (entry, ghUsername, cb) => {
           score: score,
           id: entry.id
         })
-
+        console.log('saving');
         repo.save((err, results) => {
           if (err) {
             cb(err)
