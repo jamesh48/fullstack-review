@@ -17,6 +17,8 @@ class App extends React.Component {
     this.renderRepos = this.renderRepos.bind(this);
     this.getRepos = this.getRepos.bind(this);
 
+    this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
+    this.dropCollectionUrl = 'https://whispering-retreat-11430.herokuapp.com/dropCollections';
     this.state = {
       repos: [],
       validated: false,
@@ -28,9 +30,7 @@ class App extends React.Component {
   getRepos() {
     const config = {
       method: 'GET',
-      url: '/repos'
-
-      // url: 'https://whispering-retreat-11430.herokuapp.com/repos'
+      url: this.repoUrl
     }
 
     return axios(config)
@@ -44,8 +44,7 @@ class App extends React.Component {
   dropCollections() {
     const config = {
       method: 'GET',
-      url: '/dropCollections'
-      // url: 'https://whispering-retreat-11430.herokuapp.com/dropCollections',
+      url: this.dropCollectionUrl
     }
     return axios(config)
       .then((results) => {
@@ -63,8 +62,7 @@ class App extends React.Component {
     console.log(`${term} was searched`);
     const config = {
       method: 'POST',
-      // url: 'https://whispering-retreat-11430.herokuapp.com/repos',
-      url: '/repos',
+      url: this.repoUrl
       data: {
         term: term
       },
@@ -77,10 +75,10 @@ class App extends React.Component {
       .then((results) => {
         if (Array.isArray(results.data)) {
           console.log(results.data.length)
+
           this.setState((prevState) => {
 
             var newResults = [].concat(prevState.repos, results.data)
-            newResults = newResults
             .filter((repo, index, arr) => {
               return arr.indexOf(repo) === index;
             })
