@@ -6,10 +6,8 @@ const save = require('../database/index.js').save
 const Repo = require('../database/index.js').Repo;
 
 router.post('/repos', function (req, res) {
-  // TODO - your code here!
   var ghUsername = req.body.term;
   console.log('github username ' + ghUsername);
-  // and get the repo information from the github API, then
   const config = {
     method: 'GET',
     url: `https://api.github.com/users/${ghUsername}/repos`
@@ -52,13 +50,9 @@ router.post('/repos', function (req, res) {
     .catch((err) => {
       console.log(err);
     })
-
-  // save the repo information in the database
 });
 
 router.get('/repos', function (req, res) {
-  // TODO - your code here!
-  // This route should send back the top 25 repos
   const connection = mongoose.connection;
 
   Repo.find({})

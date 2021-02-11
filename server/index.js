@@ -1,15 +1,9 @@
 const express = require('express');
 let app = express();
-const cors = require('cors');
-const dotenv = require('dotenv');
-dotenv.config();
-const url = process.env.MONGODB_URI;
 const mongoose = require('mongoose');
 require('../database');
-// mongoose.connect('mongodb://localhost/fetcher');
-// mongoose.connect(url || 'mongodb://localhost/fetcher')
+
 const router = require('./routes')
-// app.use(cors())
 app.use(express.static(__dirname + '/../client/dist'));
 app.use(express.json());
 
