@@ -62,7 +62,7 @@ class App extends React.Component {
     console.log(`${term} was searched`);
     const config = {
       method: 'POST',
-      url: this.repoUrl
+      url: this.repoUrl,
       data: {
         term: term
       },

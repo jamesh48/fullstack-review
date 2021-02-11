@@ -6,8 +6,7 @@ const save = require('../database/index.js').save
 const Repo = require('../database/index.js').Repo;
 
 router.post('/repos', function (req, res) {
-  var ghUsername = req.body.term;
-  console.log('github username ' + ghUsername);
+  const ghUsername = req.body.term;
   const config = {
     method: 'GET',
     url: `https://api.github.com/users/${ghUsername}/repos`
@@ -17,14 +16,13 @@ router.post('/repos', function (req, res) {
     .then((results) => {
       return results.data
         .sort((a, b) => {
-          var aScore = a.stargazers_count + a.watchers_count + a.forks_count;
-          var bScore = b.stargazers_count + b.watchers_count + b.forks_count;
+          const aScore = a.stargazers_count + a.watchers_count + a.forks_count;
+          const bScore = b.stargazers_count + b.watchers_count + b.forks_count;
 
           return (bScore - aScore)
         })
         .slice(0, 25)
         .map((entry, index) => {
-          console.log(entry);
           return new Promise((resolve, reject) => {
             save(entry, ghUsername, (err, results) => {
               resolve(results);
@@ -36,15 +34,16 @@ router.post('/repos', function (req, res) {
       Promise.all(arr)
         .then((finalResults) => {
           finalResults = finalResults.filter(repo => {
-            return repo !== '_empty';
+            // return repo !== '_empty';
+            return typeof repo === 'object';
           })
           console.log(finalResults.length)
           res.status(200).send(finalResults);
         })
-        // .catch((err) => {
-        //   console.log(err);
-        //   res.status(200).send('')
-        // })
+        .catch((err) => {
+          console.log(err);
+          res.status(500).json({error: err});
+        })
 
     })
     .catch((err) => {
@@ -60,7 +59,6 @@ router.get('/repos', function (req, res) {
     .limit(25)
     .then((results) => {
       results.forEach(result => {
-        console.log(result.score);
       })
       res.status(200).send(results);
     })

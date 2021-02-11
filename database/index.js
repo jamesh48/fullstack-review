@@ -1,21 +1,13 @@
 const mongoose = require('mongoose');
 const axios = require('axios');
 
+// const contributorSchema = mongoose.Schema({
+//   contributor: String
+// })
 
+// const Contributor = mongoose.model('Contributor', contributorSchema);
 
-// const url = process.env.MONGODB_URI;
-
-// mongoose.connect(url);
-
-const contributorSchema = mongoose.Schema({
-  contributor: String
-})
-
-const Contributor = mongoose.model('Contributor', contributorSchema);
-
-
-
-let repoSchema = mongoose.Schema({
+const repoSchema = mongoose.Schema({
   author: String,
   repoName: String,
   description: String,
@@ -27,8 +19,7 @@ let repoSchema = mongoose.Schema({
 
 const Repo = mongoose.model('Repo', repoSchema);
 
-let save = (entry, ghUsername, cb) => {
-  console.log('before connection');
+const save = (entry, ghUsername, cb) => {
   const connection = mongoose.connection;
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count;
   Repo.findOne({ 'id': entry.id }, (err, results) => {
@@ -62,4 +53,4 @@ let save = (entry, ghUsername, cb) => {
 
 module.exports.save = save;
 module.exports.Repo = Repo;
-module.exports.Contributor = Contributor;
+// module.exports.Contributor = Contributor;

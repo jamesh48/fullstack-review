@@ -4,6 +4,13 @@ const mongoose = require('mongoose');
 require('../database');
 
 const router = require('./routes')
+
+let port = process.env.PORT;
+
+if (port == null || port == "") {
+  port = 8000;
+}
+
 app.use(express.static(__dirname + '/../client/dist'));
 app.use(express.json());
 
@@ -13,13 +20,9 @@ app.use('/', (req, res, next) => {
 })
 app.use('/', router);
 
-let port = process.env.PORT;
 
-if (port == null || port == "") {
-  port = 8000;
-}
 
-app.listen(port, function () {
-  console.log(`listening on port ${port}`);
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });
 
