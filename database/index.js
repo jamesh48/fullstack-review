@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const url = process.env.MONGODB_URI;
+// const url = process.env.MONGODB_URI;
 
-mongoose.connect(url);
+// mongoose.connect(url);
 
 let repoSchema = mongoose.Schema({
   author: String,
@@ -23,6 +23,7 @@ let save = (entry, ghUsername, cb) => {
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count;
   console.log('before repo.findOne')
   Repo.findOne({ 'id': entry.id }, (err, results) => {
+    console.log('inside Find One')
     if (err) {
       console.log(err);
       cb(err)
