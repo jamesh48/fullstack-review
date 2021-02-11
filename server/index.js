@@ -12,7 +12,11 @@ app.use('/', (req, res, next) => {
 })
 app.use('/', router);
 
-let port = 1128;
+let port = process.env.PORT;
+
+if (port === null || port === "") {
+  port = 8000;
+}
 
 app.listen(port, function () {
   console.log(`listening on port ${port}`);
