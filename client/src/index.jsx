@@ -9,6 +9,7 @@ import RepoEntry from './components/repoEntry.jsx';
 import styles from './components/app.css'
 import Validated from './components/validated.jsx';
 import PageNoUL from './components/PageNoUl.jsx';
+import UserLi from './components/userLi.jsx';
 import UserList from './components/UserList.jsx'
 
 class App extends React.Component {
@@ -21,7 +22,7 @@ class App extends React.Component {
     this.renderPageNumbers = this.renderPageNumbers.bind(this);
     this.renderUsers = this.renderUsers.bind(this);
     this.handleClick = this.handleClick.bind(this);
-    this.handleUserClick =this.handleUserClick.bind(this);
+    this.handleUserClick = this.handleUserClick.bind(this);
 
 
     // this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
@@ -29,6 +30,7 @@ class App extends React.Component {
     this.repoUrl = '/repos';
     this.dropCollectionUrl = '/dropCollections';
     this.state = {
+      allRepos: [],
       repos: [],
       users: [],
       highlightedUser: [],
@@ -48,11 +50,24 @@ class App extends React.Component {
     })
   }
 
-  handleUserClick(event) {
-    console.log(event.target.value);
-    this.setState({
-      highlightedUser: event.target.value
-    })
+  handleUserClick(value) {
+    if (value === '_all') {
+      this.setState(prevState => {
+        return {
+          repos: prevState.allRepos.slice(0, 25),
+          currentPage: 1,
+          highlightedUser: value
+        }
+      })
+    } else {
+      this.setState(prevState => {
+        return {
+          repos: prevState.allRepos.filter((repo) => { return repo.author === value }),
+          currentPage: 1,
+          highlightedUser: value
+        }
+      })
+    }
   }
 
   getRepos() {
@@ -64,7 +79,7 @@ class App extends React.Component {
     return axios(config)
       .then((results) => {
         this.setState({
-          repos: results.data,
+          allRepos: results.data,
           users: []
         })
       })
@@ -78,7 +93,9 @@ class App extends React.Component {
     return axios(config)
       .then((results) => {
         this.setState({
-          repos: []
+          allRepos: [],
+          repos: [],
+          highlightedUser: null
         })
         console.log(results.data);
       })
@@ -105,7 +122,25 @@ class App extends React.Component {
         if (Array.isArray(results.data)) {
 
           this.setState((prevState) => {
-            var newResults = [].concat(prevState.repos, results.data)
+            const everyResult = [].concat(prevState.allRepos, results.data)
+
+            // These Lines build an array of users for the unordered list
+            const allUsers = everyResult.reduce((total, item) => {
+              if (!total.includes(item.author)) {
+                total.push(item.author);
+                return total;
+              }
+              return total;
+            }, [])
+              // concat the prevState so that users are not removed when the main repo list no longer includes them
+              .concat(prevState.users)
+              // Filter to remove duplicate users
+              .filter((item, index, arr) => {
+                return arr.indexOf(item) === index;
+              })
+
+            // Finally save the top 25 results to a variable
+            const top25Results = everyResult
               .sort((a, b) => {
                 // If Scores are equal, a sudden death-match is initiated, with the repo with the longer description prevailing
                 if (b.score === a.score) {
@@ -113,33 +148,20 @@ class App extends React.Component {
                 }
                 return b.score - a.score
               })
+              .slice(0, 25);
 
-            // These Lines build an array of users for the unordered list
-            const allUsers = newResults.reduce((total, item) => {
-              if (!total.includes(item.author)) {
-                total.push(item.author);
-                return total;
-              }
-              return total;
-            }, [])
-            // concat the prevState so that users are not removed when the main repo list no longer includes them
-            .concat(prevState.users)
-            // Filter to remove duplicate users
-            .filter((item, index, arr) => {
-              return arr.indexOf(item) === index;
-            })
-            // Finally limit the total results returned from post request to 25
-            newResults = newResults.slice(0, 25);
-
-            const updatedRepoNum = newResults.filter((repo) => { return !prevState.repos.includes(repo) }).length;
+            // const updatedRepoNum = newResults.filter((repo) => { return !prevState.allRepos.includes(repo) }).length;
+            const updatedRepoNum = top25Results.filter((repo) => {return !prevState.allRepos.includes(repo)}).length;
             const importedRepoNum = results.data.length;
 
             return {
               validated: true,
-              repos: newResults,
-              totalRepos: newResults.length,
+              allRepos: everyResult,
+              repos: everyResult.filter((result) => {return result.author === term}),
+              totalRepos: everyResult.length,
               updatedRepos: updatedRepoNum,
               importedRepos: importedRepoNum,
+              highlightedUser: term,
               users: allUsers
             }
           }, () => {
@@ -158,7 +180,8 @@ class App extends React.Component {
         console.log(err);
       })
   }
-
+  // HandleUserClick -> filter displayed repos based on highlighted user.
+  // renderRepos uses totalRepos or filteredRepos to display all repos or the highlighted users repos.
   renderRepos() {
     const { repos, currentPage, reposPerPage } = this.state;
     const indexOfLastTodo = currentPage * reposPerPage;
@@ -174,10 +197,11 @@ class App extends React.Component {
   }
 
   renderUsers() {
-    const { users } = this.state;
+    const { users, highlightedUser } = this.state;
+    const { handleUserClick } = this;
     return users.map((user, index) => {
-      return <li className='userLi' key={index} onClick={this.handleUserClick} value={user}>{user}</li>
-    })
+      return <UserLi highlightedUser={highlightedUser} user={user} index={index} handleUserClick={handleUserClick} />
+    });
 
   }
 
@@ -200,15 +224,15 @@ class App extends React.Component {
   }
 
   render() {
-    const { validated, totalRepos, repos, updatedRepos, importedRepos } = this.state;
-    const { renderRepos, search, dropCollections, renderPageNumbers, renderUsers } = this;
+    const { validated, totalRepos, allRepos, updatedRepos, importedRepos, highlightedUser } = this.state;
+    const { renderRepos, search, handleUserClick, dropCollections, renderPageNumbers, renderUsers } = this;
     return (
       <div className='app'>
         <h1>Github Fetcher</h1>
         <Search onSearch={search} dropCollections={dropCollections} />
-        <UserList renderUsers={renderUsers} />
+        <UserList highlightedUser = {highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
         <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
-        <RepoList repos={repos} renderRepos={renderRepos} />
+        <RepoList repos={allRepos} renderRepos={renderRepos} />
         <PageNoUL renderPageNumbers={renderPageNumbers} />
 
       </div>

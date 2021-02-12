@@ -36,6 +36,14 @@
   padding: 5px 10px 5px 10px;
 }
 
+.highlighted-user-li {
+  background-color: green;
+  color: ivory;
+  display: inline-block;
+  border: 1px solid black;
+  padding: 5px 10px 5px 10px;
+}
+
 .userLi:hover {
   cursor: pointer;
 }
