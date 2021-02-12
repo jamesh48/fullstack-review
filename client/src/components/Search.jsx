@@ -19,23 +19,29 @@ class Search extends React.Component {
 
   search() {
     return this.props.onSearch(this.state.term)
-    .then(() => {
-      this.setState({
-        term: ''
+      .then(() => {
+        this.setState({
+          term: ''
+        })
       })
-    })
 
 
 
   }
 
   render() {
+    const { onChange, search } = this;
+    const { term } = this.state;
+    const { dropCollections, highlightedUser } = this.props;
+
     return (
       <div id='add-repo-section'>
-        <h4>Add more repos!</h4>
-      Enter a github username: <input value={this.state.term} onChange={this.onChange} />
-        <button onClick={this.search}> Add Repos </button>
-        <DropCollections dropCollections={this.props.dropCollections}/>
+        {highlightedUser === null ?
+        <h4>Add more repos!</h4> : null
+        }
+      Enter a github username: <input value={term} onChange={onChange} />
+        <button onClick={search}> Add Repos </button>
+        <DropCollections dropCollections={dropCollections} />
       </div>
     )
   }

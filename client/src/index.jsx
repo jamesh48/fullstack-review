@@ -92,10 +92,18 @@ class App extends React.Component {
     }
     return axios(config)
       .then((results) => {
+        // Resets the App
         this.setState({
           allRepos: [],
           repos: [],
-          highlightedUser: null
+          users: [],
+          highlightedUser: null,
+          validated: false,
+          totalRepos: 0,
+          currentPage: 1,
+          reposPerPage: 5,
+          updatedRepos: 0,
+          importedRepos: 0
         })
         console.log(results.data);
       })
@@ -229,7 +237,7 @@ class App extends React.Component {
     return (
       <div className='app'>
         <h1>Github Fetcher</h1>
-        <Search onSearch={search} dropCollections={dropCollections} />
+        <Search onSearch={search} dropCollections={dropCollections} highlightedUser={highlightedUser} />
         <UserList highlightedUser={highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
         <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
         <RepoList highlightedUser={highlightedUser} allRepos={allRepos} repos={repos} renderRepos={renderRepos} />

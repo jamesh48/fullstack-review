@@ -10,11 +10,7 @@ const save = require('../database/index.js').save
 
 router.post('/repos', function (req, res) {
   const ghUsername = req.body.term;
-
-
   const config = getReposByUsername(ghUsername);
-
-
 
   return axios(config)
     .then((results) => {
@@ -25,7 +21,7 @@ router.post('/repos', function (req, res) {
 
           return (bScore - aScore)
         })
-        .slice(0, 25)
+        // .slice(0, 25)
         .map((entry, index) => {
           return new Promise((resolve, reject) => {
             save(entry, ghUsername, (err, results) => {
