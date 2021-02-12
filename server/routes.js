@@ -134,6 +134,7 @@ router.get('/repos', function (req, res) {
         }, [])
     })
     .then((finalRepos) => {
+      console.log(finalRepos.length)
       // Returns all users
       User.find({})
         .then((userModels) => {

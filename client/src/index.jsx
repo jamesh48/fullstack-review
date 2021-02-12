@@ -33,7 +33,7 @@ class App extends React.Component {
     this.dropCollectionUrl = '/dropCollections';
     this.state = {
       allRepos: [],
-      repos: [],
+      displayedRepos: [],
       users: [],
       highlightedUser: null,
       highlighted: false,
@@ -56,7 +56,7 @@ class App extends React.Component {
   handleUserClick(value) {
     this.setState(prevState => {
       return {
-        repos: value === '_all' ? prevState.allRepos.slice(0, 25) : prevState.allRepos.filter((repo) => { return repo.author === value }),
+        displayedRepos: value === '_all' ? prevState.allRepos.slice(0, 25) : prevState.allRepos.filter((repo) => { return repo.author === value }),
         currentPage: 1,
         highlightedUser: value
       }
@@ -91,7 +91,7 @@ class App extends React.Component {
         console.log(results.data);
         this.setState({
           highlightedUser: value,
-          repos: results.data,
+          displayedRepos: results.data,
           currentPage: 1
         })
       })
@@ -109,14 +109,15 @@ class App extends React.Component {
     return axios(config)
       .then((resultsArr) => {
         var repoArr = resultsArr.data[0];
-        console.log(repoArr.length);
+        var totalRepos = 0;
         var users = resultsArr.data[1].map((user) => {
+          totalRepos += user.repos.length;
           return user.user;
         });
         // const users = resultsArr.data;
-
         this.setState({
-          repos: repoArr,
+          displayedRepos: repoArr,
+          totalRepos: totalRepos,
           users: users,
           // highlightedUser: '_all',
           // highlightedUser: users[0],
@@ -138,7 +139,7 @@ class App extends React.Component {
         this.setState(prevState => {
           return {
             allRepos: [],
-            repos: [],
+            displayedRepos: [],
             users: [],
             highlightedUser: null,
             validated: false,
@@ -207,7 +208,7 @@ class App extends React.Component {
             return {
               validated: true,
               allRepos: everyResult,
-              repos: everyResult.filter((result) => { return result.author === term }),
+              displayedRepos: everyResult.filter((result) => { return result.author === term }).slice(0, 10),
               totalRepos: everyResult.length,
               highlighted: (everyResult.length > 0),
               updatedRepos: updatedRepoNum,
@@ -235,10 +236,10 @@ class App extends React.Component {
   // HandleUserClick -> filter displayed repos based on highlighted user.
   // renderRepos uses totalRepos or filteredRepos to display all repos or the highlighted users repos.
   renderRepos() {
-    const { repos, currentPage, reposPerPage } = this.state;
+    const { displayedRepos, currentPage, reposPerPage } = this.state;
     const indexOfLastRepo = currentPage * reposPerPage;
     const indexOfFirstRepo = indexOfLastRepo - reposPerPage;
-    const currentRepos = repos.slice(indexOfFirstRepo, indexOfLastRepo);
+    const currentRepos = displayedRepos.slice(indexOfFirstRepo, indexOfLastRepo);
     // console.log(currentRepos);
     return currentRepos.map((repo, index) => {
       return <RepoEntry key={index} repo={repo} />
@@ -259,10 +260,10 @@ class App extends React.Component {
   }
 
   renderPageNumbers() {
-    const { repos, currentPage, reposPerPage } = this.state;
+    const { displayedRepos, currentPage, reposPerPage } = this.state;
     const { handleClick } = this;
     const pageNumbers = [];
-    for (let i = 1; i <= Math.ceil(repos.length / reposPerPage); i++) {
+    for (let i = 1; i <= Math.ceil(displayedRepos.length / reposPerPage); i++) {
       pageNumbers.push(i)
     }
 
@@ -278,7 +279,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { validated, totalRepos, repos, allRepos, updatedRepos, importedRepos, highlightedUser, highlighted } = this.state;
+    const { validated, totalRepos, displayedRepos, allRepos, updatedRepos, importedRepos, highlightedUser, highlighted } = this.state;
     const { getRepos, renderRepos, search, handleUserClick, dropCollections, renderPageNumbers, renderUsers } = this;
     return (
       <div className='app'>
@@ -286,7 +287,7 @@ class App extends React.Component {
         <Search onSearch={search} dropCollections={dropCollections} highlightedUser={highlightedUser} highlighted={highlighted} />
         <UserList getRepos={getRepos} highlightedUser={highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
         <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
-        <RepoList highlightedUser={highlightedUser} allRepos={allRepos} repos={repos} renderRepos={renderRepos} />
+        <RepoList highlightedUser={highlightedUser} totalRepos={totalRepos} displayedRepos={displayedRepos} renderRepos={renderRepos} />
         <PageNoUL renderPageNumbers={renderPageNumbers} />
 
       </div>

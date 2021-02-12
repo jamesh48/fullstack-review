@@ -58,6 +58,7 @@ const saveUser = (ghUsername, foreignKeysArr, cb) => {
 
 const save = (entry, ghUsername, cb) => {
   // Repos are already sorted at this point, adding up the score again is just for the model's score property.
+  // entryDescriptionScore helps to manage tie breaks if both repos have no points but one has a description, it prevails.
   const entryDescriptionScore = entry.description ? 1 : 0
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count + entryDescriptionScore
   Repo.findOne({ 'id': entry.id }, (err, results) => {

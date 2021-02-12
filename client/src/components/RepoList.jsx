@@ -5,14 +5,14 @@ const RepoList = (props) => (
     {props.highlightedUser === '_all' ?
       <div id='repo-list-title-section'>
         <h3 id='repo-list-title'> Main Repo List</h3>
-        <h4>There are {props.allRepos.length} total repos.</h4>
-        <h4>Here are the top {props.repos.length}:</h4>
+        <h4>There are {props.totalRepos} total repos.</h4>
+        <h4>Here are the top {props.displayedRepos.length}:</h4>
       </div>
 
       : props.highlightedUser !== null ?
         <div id='repo-list-title-section'>
-          <h3 id='repo-list-title'> {props.highlightedUser}'s Repo List</h3>
-          <h4>{props.highlightedUser} has {props.repos.length} repos.</h4>
+          <h3 id='repo-list-title'> {props.highlightedUser}'s Repo List:</h3>
+          <h4>Users top {props.displayedRepos.length} Repos!</h4>
         </div>
 
         : null
