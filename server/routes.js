@@ -74,8 +74,11 @@ router.post('/repos', function (req, res) {
     .then((results) => {
       return results.data
         .sort((a, b) => {
-          const aScore = a.stargazers_count + a.watchers_count + a.forks_count;
-          const bScore = b.stargazers_count + b.watchers_count + b.forks_count;
+          var aDescriptionScore = a.description ? 1 : 0;
+          var bDescriptionScore = b.description ? 1 : 0;
+
+          const aScore = a.stargazers_count + a.watchers_count + a.forks_count + aDescriptionScore;
+          const bScore = b.stargazers_count + b.watchers_count + b.forks_count + bDescriptionScore;
 
           return (bScore - aScore)
         })

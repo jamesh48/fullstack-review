@@ -109,6 +109,7 @@ class App extends React.Component {
     return axios(config)
       .then((resultsArr) => {
         var repoArr = resultsArr.data[0];
+        console.log(repoArr.length);
         var users = resultsArr.data[1].map((user) => {
           return user.user;
         });
@@ -117,7 +118,9 @@ class App extends React.Component {
         this.setState({
           repos: repoArr,
           users: users,
-          highlightedUser: '_all',
+          // highlightedUser: '_all',
+          // highlightedUser: users[0],
+          highlightedUser: users.length > 0 ? '_all' : null,
           highlighted: (resultsArr.data[0].length > 0),
           currentPage: 1
         })
@@ -193,10 +196,6 @@ class App extends React.Component {
             // Finally save the top 25 results to a variable
             const top25Results = everyResult
               .sort((a, b) => {
-                // If Scores are equal, a sudden death-match is initiated, with the repo with the longer description prevailing
-                if (b.score === a.score) {
-                  return b.description.length - a.description.length
-                }
                 return b.score - a.score
               })
               .slice(0, 25);
@@ -240,7 +239,7 @@ class App extends React.Component {
     const indexOfLastRepo = currentPage * reposPerPage;
     const indexOfFirstRepo = indexOfLastRepo - reposPerPage;
     const currentRepos = repos.slice(indexOfFirstRepo, indexOfLastRepo);
-    console.log(currentRepos);
+    // console.log(currentRepos);
     return currentRepos.map((repo, index) => {
       return <RepoEntry key={index} repo={repo} />
     })
@@ -252,7 +251,7 @@ class App extends React.Component {
   renderUsers() {
     const { users, highlightedUser } = this.state;
     const { handleUserClick, getUserRepos } = this;
-    console.log(users);
+    // console.log(users);
     return users.map((user, index) => {
       return <UserLi getUserRepos={getUserRepos} highlightedUser={highlightedUser} user={user} index={index} handleUserClick={handleUserClick} />
     });

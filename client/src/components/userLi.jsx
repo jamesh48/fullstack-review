@@ -1,6 +1,6 @@
 import React from 'react';
 const UserLi = (props) => {
-  console.log(props.user)
+  // console.log(props.user)
   return (
     <li className={props.highlightedUser !== props.user ? 'userLi' : 'highlighted-user-li'} key={props.index} id={props.index} onClick={() => {props.getUserRepos(props.user)}}>{props.user}</li>
   )
