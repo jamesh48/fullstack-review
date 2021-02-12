@@ -3,10 +3,68 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const axios = require('axios');
 const Repo = require('../database/index.js').Repo;
+const User = require('../database/index.js').User;
+
 const config = require('../config.js');
 const getReposByUsername = require('../helpers/github.js').getReposByUsername;
 const save = require('../database/index.js').save
+const saveUser = require('../database/index.js').saveUser;
 
+
+// router.post('/repos', (req, res) => {
+//   const ghUsername = req.body.term;
+//   const config = getReposByUsername(ghUsername);
+//   return axios(config)
+//     .then((results) => {
+//       var test = ghUsername
+//       return results.data.reduce((total, item, index) => {
+//         var json = {};
+//         json[item.name] = item;
+//         if (!total[ghUsername]) {
+//           total[ghUsername] = json;
+//         } else {
+//           total[ghUsername] += json;
+//         }
+//         return total;
+//       }, {})
+//     })
+//     .then((niceObject) => {
+
+//       res.status(200).send([])
+//     })
+//     .catch((err) => {
+//       console.log(err);
+//     })
+// })
+
+router.get('/repos/user', (req, res) => {
+
+  const user = req.query.user
+  return User.findOne({ user: user })
+    .populate('repos')
+    .exec()
+    .then((userModel) => {
+      return userModel._doc.repos.map(repoModel => {
+        return repoModel._doc
+      })
+        .sort((a, b) => { return b.score - a.score })
+        .slice(0, 10);
+    })
+    .then((repos) => {
+      res.status(200).send(repos)
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err });
+    })
+});
+
+// router.get('/repos/allRepos', (req, res) => {
+//   return Repo.find({})
+//     .sort('-score')
+//     .limit(25)
+
+// })
+// })
 
 router.post('/repos', function (req, res) {
   const ghUsername = req.body.term;
@@ -21,7 +79,6 @@ router.post('/repos', function (req, res) {
 
           return (bScore - aScore)
         })
-        // .slice(0, 25)
         .map((entry, index) => {
           return new Promise((resolve, reject) => {
             save(entry, ghUsername, (err, results) => {
@@ -32,13 +89,23 @@ router.post('/repos', function (req, res) {
     })
     .then((arr) => {
       Promise.all(arr)
-        .then((finalResults) => {
-          finalResults = finalResults.filter(repo => {
-            // return repo !== '_empty';
+        .then((finalRepoResults) => {
+
+          finalRepoResults = finalRepoResults.filter(repo => {
             return typeof repo === 'object';
           })
-          console.log(finalResults.length)
-          res.status(200).send(finalResults);
+
+          const foreignKeysArr = finalRepoResults.map((model) => {
+            return model._doc._id;
+          })
+          saveUser(ghUsername, foreignKeysArr, (err) => {
+            if (err) {
+              console.log(err);
+              res.status(200).send('user already exists');
+            } else {
+              res.status(200).send(finalRepoResults);
+            }
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -52,20 +119,30 @@ router.post('/repos', function (req, res) {
 });
 
 router.get('/repos', function (req, res) {
-  const connection = mongoose.connection;
-
+  // Returns 25 repos...
   Repo.find({})
     .sort('-score')
     .limit(25)
     .then((results) => {
-      results.forEach(result => {
-      })
-      res.status(200).send(results);
+      return Object.keys(results)
+        .reduce((total, key, index, arr) => {
+          total.push(results[key]._doc);
+          return total;
+        }, [])
     })
-    .catch((err) => {
-      res.status(500).send(err);
-    })
-});
+    .then((finalRepos) => {
+      // Returns all users
+      User.find({})
+        .then((userModels) => {
+          let test = [];
+          test.push(finalRepos, userModels)
+          res.status(200).send(test);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        })
+    });
+})
 
 router.get('/dropCollections', (req, res) => {
   const connection = mongoose.connection;

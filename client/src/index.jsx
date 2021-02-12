@@ -19,10 +19,12 @@ class App extends React.Component {
     this.dropCollections = this.dropCollections.bind(this);
     this.renderRepos = this.renderRepos.bind(this);
     this.getRepos = this.getRepos.bind(this);
+    this.getUserRepos = this.getUserRepos.bind(this);
     this.renderPageNumbers = this.renderPageNumbers.bind(this);
     this.renderUsers = this.renderUsers.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.handleUserClick = this.handleUserClick.bind(this);
+
 
 
     // this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
@@ -61,6 +63,43 @@ class App extends React.Component {
     })
   }
 
+  // getAllRepos(value) {
+  //   config = {
+  //     method: 'GET',
+  //     url: this.repoUrl,
+  //     params: {
+  //       user: value
+  //     }
+  //   }
+  //   return axios(config)
+  //     .then((results) => {
+  //       console.log(results.data.length);
+  //     })
+  // }
+
+  getUserRepos(value) {
+    const config = {
+      method: 'GET',
+      url: this.repoUrl + '/user',
+      params: {
+        user: value
+      }
+    }
+
+    return axios(config)
+      .then((results) => {
+        console.log(results.data);
+        this.setState({
+          highlightedUser: value,
+          repos: results.data,
+          currentPage: 1
+        })
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
+
   getRepos() {
     const config = {
       method: 'GET',
@@ -68,11 +107,19 @@ class App extends React.Component {
     }
 
     return axios(config)
-      .then((results) => {
+      .then((resultsArr) => {
+        var repoArr = resultsArr.data[0];
+        var users = resultsArr.data[1].map((user) => {
+          return user.user;
+        });
+        // const users = resultsArr.data;
+
         this.setState({
-          allRepos: results.data,
-          users: [],
-          highlighted: (results.data.length > 0)
+          repos: repoArr,
+          users: users,
+          highlightedUser: '_all',
+          highlighted: (resultsArr.data[0].length > 0),
+          currentPage: 1
         })
       })
   }
@@ -141,6 +188,7 @@ class App extends React.Component {
               .filter((item, index, arr) => {
                 return arr.indexOf(item) === index;
               })
+              console.log(allUsers);
 
             // Finally save the top 25 results to a variable
             const top25Results = everyResult
@@ -166,7 +214,8 @@ class App extends React.Component {
               updatedRepos: updatedRepoNum,
               importedRepos: importedRepoNum,
               highlightedUser: term,
-              users: allUsers
+              users: allUsers,
+              currentPage: 1
             }
           }, () => {
             setTimeout(() => {
@@ -176,7 +225,7 @@ class App extends React.Component {
             }, 5000)
           });
         } else {
-          //If an Array isn't sent back from the server, do nothing (currently deprecated);
+          //If an Array isn't sent back from the server, do nothing
           console.log('nothing!');
         }
       })
@@ -188,10 +237,10 @@ class App extends React.Component {
   // renderRepos uses totalRepos or filteredRepos to display all repos or the highlighted users repos.
   renderRepos() {
     const { repos, currentPage, reposPerPage } = this.state;
-    const indexOfLastTodo = currentPage * reposPerPage;
-    const indexOfFirstTodo = indexOfLastTodo - reposPerPage;
-    const currentRepos = repos.slice(indexOfFirstTodo, indexOfLastTodo);
-
+    const indexOfLastRepo = currentPage * reposPerPage;
+    const indexOfFirstRepo = indexOfLastRepo - reposPerPage;
+    const currentRepos = repos.slice(indexOfFirstRepo, indexOfLastRepo);
+    console.log(currentRepos);
     return currentRepos.map((repo, index) => {
       return <RepoEntry key={index} repo={repo} />
     })
@@ -202,9 +251,10 @@ class App extends React.Component {
 
   renderUsers() {
     const { users, highlightedUser } = this.state;
-    const { handleUserClick } = this;
+    const { handleUserClick, getUserRepos } = this;
+    console.log(users);
     return users.map((user, index) => {
-      return <UserLi highlightedUser={highlightedUser} user={user} index={index} handleUserClick={handleUserClick} />
+      return <UserLi getUserRepos={getUserRepos} highlightedUser={highlightedUser} user={user} index={index} handleUserClick={handleUserClick} />
     });
 
   }
@@ -224,17 +274,18 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    console.log('component did mount');
     this.getRepos();
   }
 
   render() {
     const { validated, totalRepos, repos, allRepos, updatedRepos, importedRepos, highlightedUser, highlighted } = this.state;
-    const { renderRepos, search, handleUserClick, dropCollections, renderPageNumbers, renderUsers } = this;
+    const { getRepos, renderRepos, search, handleUserClick, dropCollections, renderPageNumbers, renderUsers } = this;
     return (
       <div className='app'>
         <h1>Github Fetcher</h1>
         <Search onSearch={search} dropCollections={dropCollections} highlightedUser={highlightedUser} highlighted={highlighted} />
-        <UserList highlightedUser={highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
+        <UserList getRepos={getRepos} highlightedUser={highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
         <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
         <RepoList highlightedUser={highlightedUser} allRepos={allRepos} repos={repos} renderRepos={renderRepos} />
         <PageNoUL renderPageNumbers={renderPageNumbers} />
