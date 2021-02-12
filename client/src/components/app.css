@@ -5,10 +5,23 @@
 
 #drop-collections-button {
   display: inline-block;
-  border: 2px solid red;
-  background-color:red;
+  background-color: pink;
+  border: 1px solid darkred;
+  border-radius: 5px;
+  margin-left: 2%;
 }
 
+#inner-button {
+  background-color:red;
+  color: white;
+  border: 2px solid darkred;
+  border-radius: 5px;
+  margin: 5px;
+}
+
+#inner-button:hover {
+  cursor: pointer;
+}
 #repo-list-title {
   text-decoration: underline;
 }
