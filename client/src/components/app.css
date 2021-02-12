@@ -30,6 +30,16 @@
   padding: .25vh .5vw .25vh 1.5vw;
 }
 
+.userLi {
+  display: inline-block;
+  border: 1px solid black;
+  padding: 5px 10px 5px 10px;
+}
+
+.userLi:hover {
+  cursor: pointer;
+}
+
 .invalidated:nth-child(n){
   background-color: red;
   color: ivory;

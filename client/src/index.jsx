@@ -9,6 +9,7 @@ import RepoEntry from './components/repoEntry.jsx';
 import styles from './components/app.css'
 import Validated from './components/validated.jsx';
 import PageNoUL from './components/PageNoUl.jsx';
+import UserList from './components/UserList.jsx'
 
 class App extends React.Component {
   constructor(props) {
@@ -18,15 +19,19 @@ class App extends React.Component {
     this.renderRepos = this.renderRepos.bind(this);
     this.getRepos = this.getRepos.bind(this);
     this.renderPageNumbers = this.renderPageNumbers.bind(this);
+    this.renderUsers = this.renderUsers.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.handleUserClick =this.handleUserClick.bind(this);
 
 
-    this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
-    this.dropCollectionUrl = 'https://whispering-retreat-11430.herokuapp.com/dropCollections';
-    // this.repoUrl = '/repos';
-    // this.dropCollectionUrl = '/dropCollections';
+    // this.repoUrl = 'https://whispering-retreat-11430.herokuapp.com/repos';
+    // this.dropCollectionUrl = 'https://whispering-retreat-11430.herokuapp.com/dropCollections';
+    this.repoUrl = '/repos';
+    this.dropCollectionUrl = '/dropCollections';
     this.state = {
       repos: [],
+      users: [],
+      highlightedUser: [],
       validated: false,
       totalRepos: 0,
       currentPage: 1,
@@ -43,6 +48,13 @@ class App extends React.Component {
     })
   }
 
+  handleUserClick(event) {
+    console.log(event.target.value);
+    this.setState({
+      highlightedUser: event.target.value
+    })
+  }
+
   getRepos() {
     const config = {
       method: 'GET',
@@ -53,6 +65,7 @@ class App extends React.Component {
       .then((results) => {
         this.setState({
           repos: results.data,
+          users: []
         })
       })
   }
@@ -94,24 +107,40 @@ class App extends React.Component {
           this.setState((prevState) => {
             var newResults = [].concat(prevState.repos, results.data)
               .sort((a, b) => {
-                // If Scores are equal, a deathmatch is initiated, with the repo with the longer description prevailing
+                // If Scores are equal, a sudden death-match is initiated, with the repo with the longer description prevailing
                 if (b.score === a.score) {
                   return b.description.length - a.description.length
                 }
                 return b.score - a.score
               })
-            .slice(0, 25);
 
-            const updatedRepoNum = newResults.filter((repo) => {return !prevState.repos.includes(repo)}).length;
+            // These Lines build an array of users for the unordered list
+            const allUsers = newResults.reduce((total, item) => {
+              if (!total.includes(item.author)) {
+                total.push(item.author);
+                return total;
+              }
+              return total;
+            }, [])
+            // concat the prevState so that users are not removed when the main repo list no longer includes them
+            .concat(prevState.users)
+            // Filter to remove duplicate users
+            .filter((item, index, arr) => {
+              return arr.indexOf(item) === index;
+            })
+            // Finally limit the total results returned from post request to 25
+            newResults = newResults.slice(0, 25);
+
+            const updatedRepoNum = newResults.filter((repo) => { return !prevState.repos.includes(repo) }).length;
             const importedRepoNum = results.data.length;
-
 
             return {
               validated: true,
               repos: newResults,
               totalRepos: newResults.length,
               updatedRepos: updatedRepoNum,
-              importedRepos: importedRepoNum
+              importedRepos: importedRepoNum,
+              users: allUsers
             }
           }, () => {
             setTimeout(() => {
@@ -121,7 +150,7 @@ class App extends React.Component {
             }, 2000)
           });
         } else {
-          //do nothing!
+          //If an Array isn't sent back from the server, do nothing (currently deprecated);
           console.log('nothing!');
         }
       })
@@ -144,6 +173,14 @@ class App extends React.Component {
     // })
   }
 
+  renderUsers() {
+    const { users } = this.state;
+    return users.map((user, index) => {
+      return <li className='userLi' key={index} onClick={this.handleUserClick} value={user}>{user}</li>
+    })
+
+  }
+
   renderPageNumbers() {
     const { repos, currentPage, reposPerPage } = this.state;
     const { handleClick } = this;
@@ -164,13 +201,13 @@ class App extends React.Component {
 
   render() {
     const { validated, totalRepos, repos, updatedRepos, importedRepos } = this.state;
-    const { renderRepos, search, dropCollections, renderPageNumbers } = this;
+    const { renderRepos, search, dropCollections, renderPageNumbers, renderUsers } = this;
     return (
       <div className='app'>
         <h1>Github Fetcher</h1>
         <Search onSearch={search} dropCollections={dropCollections} />
-
-        <Validated totalRepos={totalRepos} updatedRepos = {updatedRepos} importedRepos ={importedRepos} validated={validated} />
+        <UserList renderUsers={renderUsers} />
+        <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
         <RepoList repos={repos} renderRepos={renderRepos} />
         <PageNoUL renderPageNumbers={renderPageNumbers} />
 

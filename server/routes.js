@@ -2,15 +2,19 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const axios = require('axios');
-const save = require('../database/index.js').save
 const Repo = require('../database/index.js').Repo;
+const config = require('../config.js');
+const getReposByUsername = require('../helpers/github.js').getReposByUsername;
+const save = require('../database/index.js').save
+
 
 router.post('/repos', function (req, res) {
   const ghUsername = req.body.term;
-  const config = {
-    method: 'GET',
-    url: `https://api.github.com/users/${ghUsername}/repos`
-  }
+
+
+  const config = getReposByUsername(ghUsername);
+
+
 
   return axios(config)
     .then((results) => {
@@ -42,7 +46,7 @@ router.post('/repos', function (req, res) {
         })
         .catch((err) => {
           console.log(err);
-          res.status(500).json({error: err});
+          res.status(500).json({ error: err });
         })
 
     })
