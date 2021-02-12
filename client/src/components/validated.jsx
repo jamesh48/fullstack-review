@@ -5,7 +5,7 @@ const Validated = (props) => {
       <h3>Database Updated!</h3>
       <p>{props.importedRepos} Repos Imported!</p>
       {/* Updated On Client Side-> */}
-      <p>{props.updatedRepos} Repos Updated!</p>
+      <p>{props.updatedRepos} Added to the Top 25!</p>
       <p>Total Repos: {props.totalRepos}</p>
     </div>
     : null

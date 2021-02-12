@@ -33,7 +33,7 @@ class App extends React.Component {
       allRepos: [],
       repos: [],
       users: [],
-      highlightedUser: [],
+      highlightedUser: null,
       validated: false,
       totalRepos: 0,
       currentPage: 1,
@@ -151,13 +151,13 @@ class App extends React.Component {
               .slice(0, 25);
 
             // const updatedRepoNum = newResults.filter((repo) => { return !prevState.allRepos.includes(repo) }).length;
-            const updatedRepoNum = top25Results.filter((repo) => {return !prevState.allRepos.includes(repo)}).length;
+            const updatedRepoNum = top25Results.filter((repo) => { return !prevState.allRepos.includes(repo) }).length;
             const importedRepoNum = results.data.length;
 
             return {
               validated: true,
               allRepos: everyResult,
-              repos: everyResult.filter((result) => {return result.author === term}),
+              repos: everyResult.filter((result) => { return result.author === term }),
               totalRepos: everyResult.length,
               updatedRepos: updatedRepoNum,
               importedRepos: importedRepoNum,
@@ -169,7 +169,7 @@ class App extends React.Component {
               this.setState({
                 validated: false
               });
-            }, 2000)
+            }, 5000)
           });
         } else {
           //If an Array isn't sent back from the server, do nothing (currently deprecated);
@@ -224,15 +224,15 @@ class App extends React.Component {
   }
 
   render() {
-    const { validated, totalRepos, allRepos, updatedRepos, importedRepos, highlightedUser } = this.state;
+    const { validated, totalRepos, repos, allRepos, updatedRepos, importedRepos, highlightedUser } = this.state;
     const { renderRepos, search, handleUserClick, dropCollections, renderPageNumbers, renderUsers } = this;
     return (
       <div className='app'>
         <h1>Github Fetcher</h1>
         <Search onSearch={search} dropCollections={dropCollections} />
-        <UserList highlightedUser = {highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
+        <UserList highlightedUser={highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
         <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
-        <RepoList repos={allRepos} renderRepos={renderRepos} />
+        <RepoList highlightedUser={highlightedUser} allRepos={allRepos} repos={repos} renderRepos={renderRepos} />
         <PageNoUL renderPageNumbers={renderPageNumbers} />
 
       </div>
