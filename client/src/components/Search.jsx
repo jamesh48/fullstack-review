@@ -24,24 +24,22 @@ class Search extends React.Component {
           term: ''
         })
       })
-
-
-
   }
 
   render() {
     const { onChange, search } = this;
     const { term } = this.state;
-    const { dropCollections, highlightedUser } = this.props;
+    const { dropCollections, highlightedUser, highlighted } = this.props;
 
     return (
       <div id='add-repo-section'>
         {highlightedUser === null ?
-        <h4>Add more repos!</h4> : null
+          <h4>Add more repos!</h4>
+          : null
         }
       Enter a github username: <input value={term} onChange={onChange} />
         <button onClick={search}> Add Repos </button>
-        <DropCollections dropCollections={dropCollections} />
+        <DropCollections dropCollections={dropCollections} highlighted={highlighted} />
       </div>
     )
   }

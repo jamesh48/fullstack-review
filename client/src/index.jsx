@@ -34,6 +34,7 @@ class App extends React.Component {
       repos: [],
       users: [],
       highlightedUser: null,
+      highlighted: false,
       validated: false,
       totalRepos: 0,
       currentPage: 1,
@@ -51,23 +52,13 @@ class App extends React.Component {
   }
 
   handleUserClick(value) {
-    if (value === '_all') {
-      this.setState(prevState => {
-        return {
-          repos: prevState.allRepos.slice(0, 25),
-          currentPage: 1,
-          highlightedUser: value
-        }
-      })
-    } else {
-      this.setState(prevState => {
-        return {
-          repos: prevState.allRepos.filter((repo) => { return repo.author === value }),
-          currentPage: 1,
-          highlightedUser: value
-        }
-      })
-    }
+    this.setState(prevState => {
+      return {
+        repos: value === '_all' ? prevState.allRepos.slice(0, 25) : prevState.allRepos.filter((repo) => { return repo.author === value }),
+        currentPage: 1,
+        highlightedUser: value
+      }
+    })
   }
 
   getRepos() {
@@ -80,7 +71,8 @@ class App extends React.Component {
       .then((results) => {
         this.setState({
           allRepos: results.data,
-          users: []
+          users: [],
+          highlighted: (results.data.length > 0)
         })
       })
   }
@@ -93,17 +85,20 @@ class App extends React.Component {
     return axios(config)
       .then((results) => {
         // Resets the App
-        this.setState({
-          allRepos: [],
-          repos: [],
-          users: [],
-          highlightedUser: null,
-          validated: false,
-          totalRepos: 0,
-          currentPage: 1,
-          reposPerPage: 5,
-          updatedRepos: 0,
-          importedRepos: 0
+        this.setState(prevState => {
+          return {
+            allRepos: [],
+            repos: [],
+            users: [],
+            highlightedUser: null,
+            validated: false,
+            highlighted: false,
+            totalRepos: 0,
+            currentPage: 1,
+            reposPerPage: 5,
+            updatedRepos: 0,
+            importedRepos: 0
+          }
         })
         console.log(results.data);
       })
@@ -167,6 +162,7 @@ class App extends React.Component {
               allRepos: everyResult,
               repos: everyResult.filter((result) => { return result.author === term }),
               totalRepos: everyResult.length,
+              highlighted: (everyResult.length > 0),
               updatedRepos: updatedRepoNum,
               importedRepos: importedRepoNum,
               highlightedUser: term,
@@ -232,12 +228,12 @@ class App extends React.Component {
   }
 
   render() {
-    const { validated, totalRepos, repos, allRepos, updatedRepos, importedRepos, highlightedUser } = this.state;
+    const { validated, totalRepos, repos, allRepos, updatedRepos, importedRepos, highlightedUser, highlighted } = this.state;
     const { renderRepos, search, handleUserClick, dropCollections, renderPageNumbers, renderUsers } = this;
     return (
       <div className='app'>
         <h1>Github Fetcher</h1>
-        <Search onSearch={search} dropCollections={dropCollections} highlightedUser={highlightedUser} />
+        <Search onSearch={search} dropCollections={dropCollections} highlightedUser={highlightedUser} highlighted={highlighted} />
         <UserList highlightedUser={highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
         <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
         <RepoList highlightedUser={highlightedUser} allRepos={allRepos} repos={repos} renderRepos={renderRepos} />
