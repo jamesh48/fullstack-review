@@ -43,43 +43,64 @@ const getUserRepos = async (user) => {
 // Post User Repos->
 router.post('/repos', (req, res) => {
   const ghUsername = req.body.term;
-  return postUserRepos(ghUsername)
-    .then((finalRepoResults) => {
-      res.status(200).send(finalRepoResults);
-    })
-    .catch((err) => {
-      res.status(500).json({ err: err });
-    })
+  return postUserRepos(ghUsername, (err, result) => {
+    if (err) {
+      console.log(err);
+      res.status(403).send('error');
+    } else {
+      console.log(result);
+      res.status(200).send(result);
+    }
+  })
+  // .then((finalRepoResults) => {
+  //   res.status(200).send(finalRepoResults);
+  // })
+  // .catch((err) => {
+  //   // console.log('test');
+  //   // res.status(500)
+  //   console.log(err)
+  //   res.status(500).send({ err: err });
+  // })
 });
 
 
-const postUserRepos = async (ghUsername) => {
+const postUserRepos = async (ghUsername, cb) => {
   const config = getReposByUsername(ghUsername);
-  let repos = await axios(config);
 
-  repos = repos.data
-    .sort((a, b) => {
-      var aDescriptionScore = a.description ? 1 : 0;
-      var bDescriptionScore = b.description ? 1 : 0;
+  try {
+    let repos = await axios(config);
+    repos = repos.data
+      .sort((a, b) => {
+        var aDescriptionScore = a.description ? 1 : 0;
+        var bDescriptionScore = b.description ? 1 : 0;
 
-      const aScore = a.stargazers_count + a.watchers_count + a.forks_count + aDescriptionScore;
-      const bScore = b.stargazers_count + b.watchers_count + b.forks_count + bDescriptionScore;
+        const aScore = a.stargazers_count + a.watchers_count + a.forks_count + aDescriptionScore;
+        const bScore = b.stargazers_count + b.watchers_count + b.forks_count + bDescriptionScore;
 
-      return (bScore - aScore)
-    }).map((entry, index) => {
-      return new Promise(async (resolve, reject) => {
-        const result = await saveRepos(entry, ghUsername)
-        resolve(result)
+        return (bScore - aScore)
+      }).map((entry, index) => {
+        return new Promise(async (resolve, reject) => {
+          const result = await saveRepos(entry, ghUsername)
+          resolve(result)
+        })
       })
+
+    let finalRepoResults = await Promise.all(repos)
+
+    const foreignKeysArr = finalRepoResults.map((model) => {
+      return model._doc._id;
     })
+    await saveUser(ghUsername, foreignKeysArr);
 
-  let finalRepoResults = await Promise.all(repos)
+    // return finalRepoResults;
+    cb(null, finalRepoResults)
 
-  const foreignKeysArr = finalRepoResults.map((model) => {
-    return model._doc._id;
-  })
-  await saveUser(ghUsername, foreignKeysArr);
-  return finalRepoResults;
+  } catch (err) {
+    console.log('hello')
+    // do nothing
+    // res.status(403).send('error')
+    cb(err);
+  }
 }
 
 // ------------------------------------------------
@@ -140,6 +161,5 @@ router.get('/dropCollections', (req, res) => {
     }
   })
 })
-
 
 module.exports = router;

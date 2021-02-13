@@ -64,22 +64,23 @@ const getContributors = async (entry, ghUsername) => {
 
   let contributorsArr = await axios(config);
   contributorsArr = contributorsArr.data.map(contributor => {
-    if (contributor.login !== ghUsername) {
+    // if (contributor.login !== ghUsername) {
       const json = new Object();
-      json.name = contributor.name;
+      // json.name = contributor.name;
       json.login = contributor.login;
       json.url = contributor.html_url;
-      json.avatar = contributor.avatar_url;
-      json.bio = contributor.bio;
+      // json.avatar = contributor.avatar_url;
+      // json.bio = contributor.bio;
 
       return new Promise(async (resolve, reject) => {
         const result = await (saveContributors(json, ghUsername));
         resolve(result)
       })
-    }
+    // }
   })
   contributorsArr = await Promise.all(contributorsArr)
   console.log('resolved contributors array')
+  console.log(contributorsArr.length)
   return contributorsArr;
 }
 
@@ -105,54 +106,14 @@ const saveRepos = async (entry, ghUsername, cb) => {
 
     contributorResults.forEach((contributor) => {
       // console.log(contributor);
-      // newRepo.publicContributors.push(contributor._doc);
-      // newRepo.contributors.push(contributor._doc._id);
+      newRepo.publicContributors.push(contributor._doc);
+      newRepo.contributors.push(contributor._doc._id);
     })
 
     await newRepo.save()
     return newRepo;
   }
 }
-
-// Repo.findOne({ 'id': entry.id }, (err, results) => {
-//   if (err) {
-//     console.log(err);
-//     cb(err)
-//   } else {
-//     if (results === null) {
-//       getContributors(entry, ghUsername, (err, contributorResults) => {
-
-//         var repo = new Repo({
-//           author: ghUsername,
-//           repoName: entry.name,
-//           description: entry.description || '',
-//           url: entry.html_url,
-//           score: score,
-//           id: entry.id,
-//         })
-
-// // save contributor foreign keys to repo
-// contributorResults.forEach((contributor) => {
-//   repo.publicContributors.push(contributor._doc);
-//   repo.contributors.push(contributor._doc._id);
-// })
-
-//           // Save Repo
-//           repo.save((err, results) => {
-//             if (err) {
-//               cb(err)
-//             } else {
-//               cb(null, results)
-//             }
-//           })
-//         })
-//       } else {
-//         console.log('cancelling!');
-//         cb(null, '_empty');
-//       }
-//     }
-//   });
-// }
 
 module.exports.saveRepos = saveRepos;
 module.exports.saveUser = saveUser;

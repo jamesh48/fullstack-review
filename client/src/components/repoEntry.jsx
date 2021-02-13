@@ -1,6 +1,5 @@
 import React from 'react';
 const RepoEntry = (props) => {
-  console.log(props.repo.contributors)
   return (
     <li className='repo-entry'>
       {/* <div> */}
@@ -11,8 +10,8 @@ const RepoEntry = (props) => {
         <hr/>
         <h4 className='contributor-title'>Contributors:</h4>
         <div className='contributors-container'>
-        {props.repo.contributors.map(contributor => {
-          return <a href={contributor.url} className='contributor'>{contributor.contributor}</a>
+        {props.repo.publicContributors.map((pContributor, index) => {
+          return <a target='_blank' key={index} href={pContributor.url} className='contributor'>{pContributor.contributor}</a>
         })}
         </div>
       {/* </div> */}

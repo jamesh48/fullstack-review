@@ -46,3 +46,10 @@ class Search extends React.Component {
 }
 
 export default Search;
+
+// curl --head \
+//      --header "Authorization: token 072d5ed77769b999d7bab02ce441d2905bff44d3" \
+//      https://api.github.com/repos/octokit/core.js/releases/latest
+// X-RateLimit-Limit: 5000
+// X-RateLimit-Remaining: 4999
+// X-RateLimit-Reset: 1578690903

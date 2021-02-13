@@ -96,7 +96,7 @@ class App extends React.Component {
         })
       })
       .catch((err) => {
-        console.log(err);
+        console.log(err.err);
       })
   }
 
@@ -192,7 +192,23 @@ class App extends React.Component {
               .filter((item, index, arr) => {
                 return arr.indexOf(item) === index;
               })
-            console.log(allUsers);
+
+            var resultArr = [];
+            allUsers.forEach(user => {
+              var test = everyResult.reduce((total, repo) => {
+                total = total.concat('new repo');
+                if (repo.author === user) {
+                  repo.publicContributors.forEach(pC => {
+                    if (!total.includes(pC.contributor)) {
+                      total.push(pC.contributor, pc.url);
+                    }
+                  })
+                }
+                return total;
+              }, [])
+              resultArr = resultArr.concat(test);
+            })
+            console.log(resultArr);
 
             // Finally save the top 25 results to a variable
             const top25Results = everyResult
@@ -231,6 +247,7 @@ class App extends React.Component {
       })
       .catch((err) => {
         console.log(err);
+        window.open(`https://github.com/login/oauth/authorize`)
       })
   }
   // HandleUserClick -> filter displayed repos based on highlighted user.
@@ -254,7 +271,7 @@ class App extends React.Component {
     const { handleUserClick, getUserRepos } = this;
     // console.log(users);
     return users.map((user, index) => {
-      return <UserLi getUserRepos={getUserRepos} highlightedUser={highlightedUser} user={user} index={index} handleUserClick={handleUserClick} />
+      return <UserLi getUserRepos={getUserRepos} highlightedUser={highlightedUser} user={user} key={index} handleUserClick={handleUserClick} />
     });
 
   }
@@ -268,7 +285,7 @@ class App extends React.Component {
     }
 
     return pageNumbers.map((number, index, arr) => {
-      return <PageNumber index={number} handleClick={handleClick} />
+      return <PageNumber index={number} key={index} handleClick={handleClick} />
     })
 
   }
