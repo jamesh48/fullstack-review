@@ -73,6 +73,7 @@
   list-style-type: none;
   border: 1px solid black;
   padding-left: 10px;
+  padding-right: 10px;
 }
 
 
@@ -88,6 +89,23 @@
   background-color: darkslategrey;
   color: ivory;
   cursor: pointer;
+}
+.contributors-container {
+display: grid;
+grid-template-columns: auto auto auto;
+}
+
+.contributor-title {
+  margin: 5px;
+  margin-left: 0px;
+}
+.contributors-container > p {
+  margin: 0px;
+  margin-bottom: 10px;
+}
+
+.contributor {
+    /* background-color: blue; */
 }
 
 

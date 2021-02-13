@@ -7,165 +7,113 @@ const User = require('../database/index.js').User;
 
 const config = require('../config.js');
 const getReposByUsername = require('../helpers/github.js').getReposByUsername;
-const save = require('../database/index.js').save
+const saveRepos = require('../database/index.js').saveRepos;
 const saveUser = require('../database/index.js').saveUser;
 
 
-// router.post('/repos', (req, res) => {
-//   const ghUsername = req.body.term;
-//   const config = getReposByUsername(ghUsername);
-//   return axios(config)
-//     .then((results) => {
-//       var test = ghUsername
-//       return results.data.reduce((total, item, index) => {
-//         var json = {};
-//         json[item.name] = item;
-//         if (!total[ghUsername]) {
-//           total[ghUsername] = json;
-//         } else {
-//           total[ghUsername] += json;
-//         }
-//         return total;
-//       }, {})
-//     })
-//     .then((niceObject) => {
-
-//       res.status(200).send([])
-//     })
-//     .catch((err) => {
-//       console.log(err);
-//     })
-// })
-
+// Get User Repos->
 router.get('/repos/user', (req, res) => {
-
   const user = req.query.user
-  return User.findOne({ user: user })
-    .populate('repos')
-    .exec()
-    .then((userModel) => {
-      return userModel._doc.repos.map(repoModel => {
-        return repoModel._doc
-      })
-        .sort((a, b) => { return b.score - a.score })
-        .slice(0, 10);
-    })
-    .then((repos) => {
-      res.status(200).send(repos)
+  return getUserRepos(user)
+    .then((userRepos) => {
+      res.status(200).send(userRepos);
     })
     .catch((err) => {
       res.status(500).json({ error: err });
     })
-});
+})
 
-// router.get('/repos/allRepos', (req, res) => {
-//   return Repo.find({})
-//     .sort('-score')
-//     .limit(25)
+const getUserRepos = async (user) => {
+  const userModel = await User.findOne({ user: user })
+    .populate('repos')
+    .exec()
 
-// })
-// })
+  return userModel._doc.repos.map(repoModel => {
+    return repoModel._doc;
+  })
+    .sort((a, b) => { return b.score - a.score })
+    .slice(0, 10);
+}
 
-router.post('/repos', function (req, res) {
+
+
+
+// ------------------------------------------------
+
+// Post User Repos->
+router.post('/repos', (req, res) => {
   const ghUsername = req.body.term;
-  const config = getReposByUsername(ghUsername);
-
-  return axios(config)
-    .then((results) => {
-      return results.data
-        .sort((a, b) => {
-          var aDescriptionScore = a.description ? 1 : 0;
-          var bDescriptionScore = b.description ? 1 : 0;
-
-          const aScore = a.stargazers_count + a.watchers_count + a.forks_count + aDescriptionScore;
-          const bScore = b.stargazers_count + b.watchers_count + b.forks_count + bDescriptionScore;
-
-          return (bScore - aScore)
-        })
-        .map((entry, index) => {
-          return new Promise((resolve, reject) => {
-            save(entry, ghUsername, (err, results) => {
-              resolve(results);
-            });
-          })
-        })
-    })
-    .then((arr) => {
-      Promise.all(arr)
-        .then((finalRepoResults) => {
-
-          finalRepoResults = finalRepoResults.filter(repo => {
-            return typeof repo === 'object';
-          })
-
-          const foreignKeysArr = finalRepoResults.map((model) => {
-            return model._doc._id;
-          })
-          saveUser(ghUsername, foreignKeysArr, (err) => {
-            if (err) {
-              console.log(err);
-              res.status(200).send('user already exists');
-            } else {
-              res.status(200).send(finalRepoResults);
-            }
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-          res.status(500).json({ error: err });
-        })
-
+  return postUserRepos(ghUsername)
+    .then((finalRepoResults) => {
+      res.status(200).send(finalRepoResults);
     })
     .catch((err) => {
-      console.log(err);
+      res.status(500).json({ err: err });
     })
 });
 
+
+const postUserRepos = async (ghUsername) => {
+  const config = getReposByUsername(ghUsername);
+  let repos = await axios(config);
+
+  repos = repos.data
+    .sort((a, b) => {
+      var aDescriptionScore = a.description ? 1 : 0;
+      var bDescriptionScore = b.description ? 1 : 0;
+
+      const aScore = a.stargazers_count + a.watchers_count + a.forks_count + aDescriptionScore;
+      const bScore = b.stargazers_count + b.watchers_count + b.forks_count + bDescriptionScore;
+
+      return (bScore - aScore)
+    }).map((entry, index) => {
+      return new Promise(async (resolve, reject) => {
+        const result = await saveRepos(entry, ghUsername)
+        resolve(result)
+      })
+    })
+
+  let finalRepoResults = await Promise.all(repos)
+
+  const foreignKeysArr = finalRepoResults.map((model) => {
+    return model._doc._id;
+  })
+  await saveUser(ghUsername, foreignKeysArr);
+  return finalRepoResults;
+}
+
+// ------------------------------------------------
+// Get Top Repos on Refresh->    d
 router.get('/repos', (req, res) => {
+  getTopRepos()
+    .then((responseArr) => {
+      res.status(200).send(responseArr);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    })
+})
+
+const getTopRepos = async () => {
   // Returns 25 repos...
-  Repo.find({})
+  let repos = await Repo.find({})
     .populate('contributors')
     .sort('-score')
     .limit(25)
-    .then((results) => {
-      return Object.keys(results)
-        .reduce((total, key, index, arr) => {
-          total.push(results[key]._doc);
-          return total;
-        }, [])
-    })
-    .then((finalRepos) => {
-      // Returns all users
-      User.find({})
-        .then((userModels) => {
-          let responseArr = [];
-          responseArr.push(finalRepos, userModels)
-          res.status(200).send(responseArr);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        })
-    });
-});
 
-// router.get('/repos', (req, res) => {
-//   User.find({})
-//     .populate('repos')
-//     .exec((err, userModels) => {
-//       res.status(200).send(userModels);
-//     })
-// })
+  repos = Object.keys(repos)
+    .reduce((total, key, index, arr) => {
+      total.push(repos[key]._doc);
+      return total
+    }, [])
 
-// router.get('/repos', (req, res) => {
-//   Repo.find({})
-//     .sort('-score')
-//     .then((results) => {
-//       res.status(200).send(results)
-//     })
-// })
-
-
-
+  const userModels = await User.find({});
+  const responseArr = []
+  responseArr.push(repos, userModels)
+  return responseArr;
+}
+// ------------------------------------------------
+// Drop Collections->
 router.get('/dropCollections', (req, res) => {
   const connection = mongoose.connection;
   connection.db.listCollections().toArray((err, names) => {
@@ -193,13 +141,5 @@ router.get('/dropCollections', (req, res) => {
   })
 })
 
-
-
-// repos: Array(5)
-// 0: {_id: "6026fc127f7a989d7c42cc69", author: "jamesh48", repoName: "iPad-Test-Project", description: "A little HTML/CSS/JavaScript refresher I did recently with the Koder app on my IPad ", url: "https://github.com/jamesh48/iPad-Test-Project", …}
-// 1: {_id: "6026fc127f7a989d7c42cc6a", author: "jamesh48", repoName: "recursion-prompts", description: "Repository of prompts to be solved using recursion", url: "https://github.com/jamesh48/recursion-prompts", …}
-// 2: {_id: "6026fc127f7a989d7c42cc6b", author: "jamesh48", repoName: "SCExpress_", description: "", url: "https://github.com/jamesh48/SCExpress_", …}
-// 3: {_id: "6026fc137f7a989d7c42cc6d", author: "jamesh48", repoName: "tech-dry-run", description: "", url: "https://github.com/jamesh48/tech-dry-run", …}
-// 4: {_id: "6026fc137f7a989d7c42cc6c", author: "jamesh48", repoName: "
 
 module.exports = router;

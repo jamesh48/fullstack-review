@@ -1,20 +1,22 @@
 const mongoose = require('mongoose');
 const axios = require('axios');
 
-
 const contributorSchema = mongoose.Schema({
-  contributor: String
+  contributor: String,
+  name: String,
+  avatar: String,
+  bio: String,
+  url: String,
 })
 
 const Contributor = mongoose.model('Contributor', contributorSchema);
 
 const userSchema = mongoose.Schema({
   user: String,
-  repos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Repo' }]
+  repos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Repo', other: {} }]
 })
 
 const User = mongoose.model('User', userSchema);
-
 
 const repoSchema = mongoose.Schema({
   author: String,
@@ -23,140 +25,136 @@ const repoSchema = mongoose.Schema({
   url: String,
   score: Number,
   id: Number,
+  publicContributors: [],
   contributors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contributor' }]
 });
 
 const Repo = mongoose.model('Repo', repoSchema);
 
-//Todo: create user save
-
-const saveUser = (ghUsername, foreignKeysArr, cb) => {
-  User.findOne({ user: ghUsername }, (err, userResults) => {
-    if (err) {
-      console.log(err);
-      cb('error');
-    } else {
-      if (userResults === null) {
-        var user = new User({
-          user: ghUsername,
-        })
-        foreignKeysArr.forEach((fk) => {
-          user.repos.push(fk);
-        })
-        user.save((err, results) => {
-          if (err) {
-            cb('error')
-          } else {
-            // Success Case
-            cb(null);
-          }
-        })
-      } else {
-        console.log('cancelling adding user!')
-        cb('error')
-      }
-    }
-  })
+const saveUser = async (ghUsername, foreignKeysArr) => {
+  const userResults = await User.findOne({ user: ghUsername });
+  if (userResults === null) {
+    let user = new User({ user: ghUsername });
+    foreignKeysArr.forEach((fk) => {
+      user.repos.push(fk);
+    })
+    user.save();
+    return;
+  }
 }
 
-const saveContributors = (contributor, ghUsername, cb) => {
-  var contributor = new Contributor({
-    contributor: contributor.login
+const saveContributors = async (contributor, ghUsername, cb) => {
+  const newContributor = new Contributor({
+    contributor: contributor.login,
+    url: contributor.url,
+    bio: contributor.bio,
+    name: contributor.name,
+    avatar: contributor.avatar_url
   })
 
-  contributor.save((err, results) => {
-    if (err) {
-      cb(err);
-    } else {
-      cb(null, results);
-    }
-  })
+  await newContributor.save();
+  return newContributor;
 }
 
-const getContributors = (entry, ghUsername, cb) => {
-  var config = {
+const getContributors = async (entry, ghUsername) => {
+  const config = {
     method: 'GET',
     url: entry.contributors_url
   }
 
-  return axios(config)
-    .then((contributorsArr, ghUsername) => {
-      return contributorsArr.data.map(contributor => {
-        if (contributor.login !== ghUsername) {
-          const json = new Object();
-          json.login = contributor.login;
-          json.url = contributor.url;
-          return json;
-        }
+  let contributorsArr = await axios(config);
+  contributorsArr = contributorsArr.data.map(contributor => {
+    if (contributor.login !== ghUsername) {
+      const json = new Object();
+      json.name = contributor.name;
+      json.login = contributor.login;
+      json.url = contributor.html_url;
+      json.avatar = contributor.avatar_url;
+      json.bio = contributor.bio;
+
+      return new Promise(async (resolve, reject) => {
+        const result = await (saveContributors(json, ghUsername));
+        resolve(result)
       })
-    })
-    .then((allCurrentContributors) => {
-      return allCurrentContributors.map((contributor) => {
-        return new Promise((resolve, reject) => {
-          saveContributors(contributor, ghUsername, (err, results) => {
-            resolve(results)
-          })
-        })
-      })
-    })
-    .then((promiseArr) => {
-      Promise.all(promiseArr)
-        .then((finalContributorResults) => {
-          // console.log(finalContributorResults)
-          cb(null, finalContributorResults);
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    })
-    .catch((err) => {
-      console.log(err);
-    })
+    }
+  })
+  contributorsArr = await Promise.all(contributorsArr)
+  console.log('resolved contributors array')
+  return contributorsArr;
 }
 
-const save = (entry, ghUsername, cb) => {
+const saveRepos = async (entry, ghUsername, cb) => {
   // Repos are already sorted at this point, adding up the score again is just for the model's score property.
   // entryDescriptionScore helps to manage tie breaks if both repos have no points but one has a description, it prevails.
   const entryDescriptionScore = entry.description ? 1 : 0
   const score = entry.stargazers_count + entry.watchers_count + entry.forks_count + entryDescriptionScore
-  Repo.findOne({ 'id': entry.id }, (err, results) => {
-    if (err) {
-      console.log(err);
-      cb(err)
-    } else {
-      if (results === null) {
-        getContributors(entry, ghUsername, (err, contributorResults) => {
-          var repo = new Repo({
-            author: ghUsername,
-            repoName: entry.name,
-            description: entry.description || '',
-            url: entry.html_url,
-            score: score,
-            id: entry.id,
-          })
 
-          // save contributor foreign keys to repo
-          contributorResults.forEach((contributor) => {
-            repo.contributors.push(contributor._doc._id);
-          })
+  const existingRepoResults = await Repo.findOne({ 'id': entry.id });
 
-          repo.save((err, results) => {
-            if (err) {
-              cb(err)
-            } else {
-              cb(null, results)
-            }
-          })
-        })
-      } else {
-        console.log('cancelling!');
-        cb(null, '_empty');
-      }
-    }
-  });
+  if (existingRepoResults === null) {
+    const contributorResults = await getContributors(entry, ghUsername);
+
+    let newRepo = new Repo({
+      author: ghUsername,
+      repoName: entry.name,
+      description: entry.description || '',
+      url: entry.html_url,
+      score: score,
+      id: entry.id
+    })
+
+    contributorResults.forEach((contributor) => {
+      // console.log(contributor);
+      // newRepo.publicContributors.push(contributor._doc);
+      // newRepo.contributors.push(contributor._doc._id);
+    })
+
+    await newRepo.save()
+    return newRepo;
+  }
 }
 
-module.exports.save = save;
+// Repo.findOne({ 'id': entry.id }, (err, results) => {
+//   if (err) {
+//     console.log(err);
+//     cb(err)
+//   } else {
+//     if (results === null) {
+//       getContributors(entry, ghUsername, (err, contributorResults) => {
+
+//         var repo = new Repo({
+//           author: ghUsername,
+//           repoName: entry.name,
+//           description: entry.description || '',
+//           url: entry.html_url,
+//           score: score,
+//           id: entry.id,
+//         })
+
+// // save contributor foreign keys to repo
+// contributorResults.forEach((contributor) => {
+//   repo.publicContributors.push(contributor._doc);
+//   repo.contributors.push(contributor._doc._id);
+// })
+
+//           // Save Repo
+//           repo.save((err, results) => {
+//             if (err) {
+//               cb(err)
+//             } else {
+//               cb(null, results)
+//             }
+//           })
+//         })
+//       } else {
+//         console.log('cancelling!');
+//         cb(null, '_empty');
+//       }
+//     }
+//   });
+// }
+
+module.exports.saveRepos = saveRepos;
 module.exports.saveUser = saveUser;
 module.exports.Repo = Repo;
 module.exports.User = User;
