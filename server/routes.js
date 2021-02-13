@@ -121,9 +121,10 @@ router.post('/repos', function (req, res) {
     })
 });
 
-router.get('/repos', function (req, res) {
+router.get('/repos', (req, res) => {
   // Returns 25 repos...
   Repo.find({})
+    .populate('contributors')
     .sort('-score')
     .limit(25)
     .then((results) => {
@@ -134,19 +135,36 @@ router.get('/repos', function (req, res) {
         }, [])
     })
     .then((finalRepos) => {
-      console.log(finalRepos.length)
       // Returns all users
       User.find({})
         .then((userModels) => {
-          let test = [];
-          test.push(finalRepos, userModels)
-          res.status(200).send(test);
+          let responseArr = [];
+          responseArr.push(finalRepos, userModels)
+          res.status(200).send(responseArr);
         })
         .catch((err) => {
           res.status(500).send(err);
         })
     });
-})
+});
+
+// router.get('/repos', (req, res) => {
+//   User.find({})
+//     .populate('repos')
+//     .exec((err, userModels) => {
+//       res.status(200).send(userModels);
+//     })
+// })
+
+// router.get('/repos', (req, res) => {
+//   Repo.find({})
+//     .sort('-score')
+//     .then((results) => {
+//       res.status(200).send(results)
+//     })
+// })
+
+
 
 router.get('/dropCollections', (req, res) => {
   const connection = mongoose.connection;
@@ -175,5 +193,13 @@ router.get('/dropCollections', (req, res) => {
   })
 })
 
+
+
+// repos: Array(5)
+// 0: {_id: "6026fc127f7a989d7c42cc69", author: "jamesh48", repoName: "iPad-Test-Project", description: "A little HTML/CSS/JavaScript refresher I did recently with the Koder app on my IPad ", url: "https://github.com/jamesh48/iPad-Test-Project", …}
+// 1: {_id: "6026fc127f7a989d7c42cc6a", author: "jamesh48", repoName: "recursion-prompts", description: "Repository of prompts to be solved using recursion", url: "https://github.com/jamesh48/recursion-prompts", …}
+// 2: {_id: "6026fc127f7a989d7c42cc6b", author: "jamesh48", repoName: "SCExpress_", description: "", url: "https://github.com/jamesh48/SCExpress_", …}
+// 3: {_id: "6026fc137f7a989d7c42cc6d", author: "jamesh48", repoName: "tech-dry-run", description: "", url: "https://github.com/jamesh48/tech-dry-run", …}
+// 4: {_id: "6026fc137f7a989d7c42cc6c", author: "jamesh48", repoName: "
 
 module.exports = router;

@@ -125,6 +125,7 @@ class App extends React.Component {
           highlighted: (resultsArr.data[0].length > 0),
           currentPage: 1
         })
+        // console.log(resultsArr.data);
       })
   }
 
@@ -174,7 +175,6 @@ class App extends React.Component {
     return axios(config)
       .then((results) => {
         if (Array.isArray(results.data)) {
-
           this.setState((prevState) => {
             const everyResult = [].concat(prevState.allRepos, results.data)
 
@@ -192,7 +192,7 @@ class App extends React.Component {
               .filter((item, index, arr) => {
                 return arr.indexOf(item) === index;
               })
-              console.log(allUsers);
+            console.log(allUsers);
 
             // Finally save the top 25 results to a variable
             const top25Results = everyResult
@@ -296,3 +296,4 @@ class App extends React.Component {
 }
 
 ReactDOM.render(<App />, document.getElementById('app'));
+
