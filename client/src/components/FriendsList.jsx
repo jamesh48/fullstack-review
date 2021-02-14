@@ -1,12 +1,21 @@
 import React from 'react';
 
 const FriendsList = (props) => {
-  return (
+  return props.friendsList !== null ?
     <div>
-
+      <span id='friends-list-title-section'>
+        <h3 className='fortune-title'>{props.highlightedUser}'s friends List:</h3>
+      </span>
+      <div id='friends-list-container'>
+        {props.friendsList !== undefined ? props.friendsList.map((friend) => {
+          return <p className='friend'>{friend}</p>
+        }) : null}
+      </div>
     </div>
-  )
+    : null
 }
+
+
 
 export default FriendsList;
 

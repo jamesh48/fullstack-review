@@ -2,18 +2,16 @@ const mongoose = require('mongoose');
 const axios = require('axios');
 
 const contributorSchema = mongoose.Schema({
-  contributor: String,
-  name: String,
-  avatar: String,
-  bio: String,
-  url: String,
+  handle: String,
+  url: String
 })
 
 const Contributor = mongoose.model('Contributor', contributorSchema);
 
 const userSchema = mongoose.Schema({
   user: String,
-  repos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Repo', other: {} }]
+  friendsList: [],
+  repos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Repo' }]
 })
 
 const User = mongoose.model('User', userSchema);
@@ -31,60 +29,61 @@ const repoSchema = mongoose.Schema({
 
 const Repo = mongoose.model('Repo', repoSchema);
 
-const saveUser = async (ghUsername, foreignKeysArr) => {
+const saveUser = async (ghUsername, foreignKeysArr, friendsList) => {
   const userResults = await User.findOne({ user: ghUsername });
   if (userResults === null) {
     let user = new User({ user: ghUsername });
     foreignKeysArr.forEach((fk) => {
       user.repos.push(fk);
     })
-    user.save();
+    user.friendsList = friendsList;
+    await user.save();
     return;
   }
 }
 
-const saveContributors = async (contributor, ghUsername, cb) => {
+const saveContributors = async (contributor) => {
+  const potentialContributor = await Contributor.findOne({ 'handle': contributor.login })
+
   const newContributor = new Contributor({
-    contributor: contributor.login,
-    url: contributor.url,
-    bio: contributor.bio,
-    name: contributor.name,
-    avatar: contributor.avatar_url
+    handle: contributor.login,
+    url: contributor.html_url,
   })
 
-  await newContributor.save();
-  return newContributor;
+  if (potentialContributor === null) {
+    const passingContributor = await newContributor.save();
+    return passingContributor;
+  } else {
+    // Don't save but return contributor to be listed in repo
+    return newContributor;
+  }
 }
 
-const getContributors = async (entry, ghUsername) => {
+const getContributors = async (entry) => {
   const config = {
     method: 'GET',
     url: entry.contributors_url
   }
 
   let contributorsArr = await axios(config);
-  contributorsArr = contributorsArr.data.map(contributor => {
-    // if (contributor.login !== ghUsername) {
-      const json = new Object();
-      // json.name = contributor.name;
-      json.login = contributor.login;
-      json.url = contributor.html_url;
-      // json.avatar = contributor.avatar_url;
-      // json.bio = contributor.bio;
 
-      return new Promise(async (resolve, reject) => {
-        const result = await (saveContributors(json, ghUsername));
-        resolve(result)
-      })
-    // }
-  })
-  contributorsArr = await Promise.all(contributorsArr)
-  console.log('resolved contributors array')
-  console.log(contributorsArr.length)
-  return contributorsArr;
+  // return Promise.all(contributorsArr.data.map(
+  //   (contributor) => {
+  //       // return saveContributors(contributor);
+  //     }
+  //   }))
+  return contributorsArr.data.reduce(async (total, contributor) => {
+    const results = await total;
+    let passing = await saveContributors(contributor);
+    if (!passing) {
+      return [...results]
+    } else {
+      return [...results, passing];
+    }
+  }, [])
 }
 
-const saveRepos = async (entry, ghUsername, cb) => {
+const saveRepos = async (entry, ghUsername) => {
   // Repos are already sorted at this point, adding up the score again is just for the model's score property.
   // entryDescriptionScore helps to manage tie breaks if both repos have no points but one has a description, it prevails.
   const entryDescriptionScore = entry.description ? 1 : 0
@@ -93,8 +92,11 @@ const saveRepos = async (entry, ghUsername, cb) => {
   const existingRepoResults = await Repo.findOne({ 'id': entry.id });
 
   if (existingRepoResults === null) {
-    const contributorResults = await getContributors(entry, ghUsername);
-
+    const contributorResults = await getContributors(entry);
+    // contributorResults.forEach((contributor) => {
+    //   console.log(contributor.handle)
+    // })
+    // console.log(contributorResults);
     let newRepo = new Repo({
       author: ghUsername,
       repoName: entry.name,
@@ -105,13 +107,20 @@ const saveRepos = async (entry, ghUsername, cb) => {
     })
 
     contributorResults.forEach((contributor) => {
-      // console.log(contributor);
-      newRepo.publicContributors.push(contributor._doc);
-      newRepo.contributors.push(contributor._doc._id);
+      if (typeof contributor === 'object') {
+        newRepo.publicContributors.push(contributor._doc);
+        newRepo.contributors.push(contributor._doc._id);
+      }
     })
 
+    // console.log(contributorResults);
+    // console.log(typeof contributorResults);
+
     await newRepo.save()
+    //  var arr = [];
+    //  arr.push(newRepo, contributorResults)
     return newRepo;
+    // return arr;
   }
 }
 

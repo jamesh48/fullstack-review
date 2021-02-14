@@ -6,7 +6,8 @@ import Search from './components/Search.jsx';
 import PageNumber from './components/PageNumber.jsx'
 import RepoList from './components/RepoList.jsx';
 import RepoEntry from './components/repoEntry.jsx';
-import styles from './components/app.css'
+import styles from './components/app.css';
+import FriendsList from './components/FriendsList.jsx';
 import Validated from './components/validated.jsx';
 import PageNoUL from './components/PageNoUl.jsx';
 import UserLi from './components/userLi.jsx';
@@ -88,10 +89,13 @@ class App extends React.Component {
 
     return axios(config)
       .then((results) => {
-        console.log(results.data);
+        // console.log(results.data[0]);
+        // console.log(results.data[1]);
+        console.log(value);
         this.setState({
           highlightedUser: value,
-          displayedRepos: results.data,
+          friendsList: value !== '_all' ? results.data[1] : null,
+          displayedRepos: results.data[0],
           currentPage: 1
         })
       })
@@ -119,6 +123,7 @@ class App extends React.Component {
           displayedRepos: repoArr,
           totalRepos: totalRepos,
           users: users,
+          friendsList: null,
           // highlightedUser: '_all',
           // highlightedUser: users[0],
           highlightedUser: users.length > 0 ? '_all' : null,
@@ -143,6 +148,7 @@ class App extends React.Component {
             displayedRepos: [],
             users: [],
             highlightedUser: null,
+            friendsList: null,
             validated: false,
             highlighted: false,
             totalRepos: 0,
@@ -174,9 +180,11 @@ class App extends React.Component {
 
     return axios(config)
       .then((results) => {
-        if (Array.isArray(results.data)) {
+        if (Array.isArray(results.data[0])) {
           this.setState((prevState) => {
-            const everyResult = [].concat(prevState.allRepos, results.data)
+            let everyResult = results.data[0];
+            const friendsList = results.data[1];
+            everyResult = [].concat(prevState.allRepos, everyResult)
 
             // These Lines build an array of users for the unordered list
             const allUsers = everyResult.reduce((total, item) => {
@@ -193,22 +201,25 @@ class App extends React.Component {
                 return arr.indexOf(item) === index;
               })
 
-            var resultArr = [];
-            allUsers.forEach(user => {
-              var test = everyResult.reduce((total, repo) => {
-                total = total.concat('new repo');
-                if (repo.author === user) {
-                  repo.publicContributors.forEach(pC => {
-                    if (!total.includes(pC.contributor)) {
-                      total.push(pC.contributor, pc.url);
-                    }
-                  })
-                }
-                return total;
-              }, [])
-              resultArr = resultArr.concat(test);
-            })
-            console.log(resultArr);
+            // var resultArr = [];
+            // allUsers.forEach(user => {
+            //   var test = everyResult.reduce((total, repo) => {
+            //     if (repo.author === user) {
+            //       repo.publicContributors.forEach(pC => {
+            //         if (!total.includes(pC.contributor)) {
+            //           total.push(pC.contributor, pC.url);
+            //         }
+            //       })
+            //     }
+            //     return total;
+            //   }, [])
+            //   resultArr = resultArr.concat(test);
+            // })
+            // var otherArr = [];
+            // for (let i = 0; i < resultArr.length; i+= 2) {
+            //   otherArr.push([resultArr[i], resultArr[i + 1]]);
+            // }
+            // console.log(otherArr);
 
             // Finally save the top 25 results to a variable
             const top25Results = everyResult
@@ -219,9 +230,10 @@ class App extends React.Component {
 
             // const updatedRepoNum = newResults.filter((repo) => { return !prevState.allRepos.includes(repo) }).length;
             const updatedRepoNum = top25Results.filter((repo) => { return !prevState.allRepos.includes(repo) }).length;
-            const importedRepoNum = results.data.length;
+            const importedRepoNum = everyResult.length;
 
             return {
+              friendsList: friendsList,
               validated: true,
               allRepos: everyResult,
               displayedRepos: everyResult.filter((result) => { return result.author === term }).slice(0, 10),
@@ -296,7 +308,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { validated, totalRepos, displayedRepos, allRepos, updatedRepos, importedRepos, highlightedUser, highlighted } = this.state;
+    const { validated, totalRepos, displayedRepos, allRepos, updatedRepos, importedRepos, highlightedUser, highlighted, friendsList } = this.state;
     const { getRepos, renderRepos, search, handleUserClick, dropCollections, renderPageNumbers, renderUsers } = this;
     return (
       <div className='app'>
@@ -304,6 +316,7 @@ class App extends React.Component {
         <Search onSearch={search} dropCollections={dropCollections} highlightedUser={highlightedUser} highlighted={highlighted} />
         <UserList getRepos={getRepos} highlightedUser={highlightedUser} renderUsers={renderUsers} handleUserClick={handleUserClick} />
         <Validated totalRepos={totalRepos} updatedRepos={updatedRepos} importedRepos={importedRepos} validated={validated} />
+        <FriendsList highlightedUser={highlightedUser} friendsList={friendsList}/>
         <RepoList highlightedUser={highlightedUser} totalRepos={totalRepos} displayedRepos={displayedRepos} renderRepos={renderRepos} />
         <PageNoUL renderPageNumbers={renderPageNumbers} />
 

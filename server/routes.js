@@ -28,11 +28,15 @@ const getUserRepos = async (user) => {
     .populate('repos')
     .exec()
 
-  return userModel._doc.repos.map(repoModel => {
+  let userRepos = userModel._doc.repos.map(repoModel => {
     return repoModel._doc;
   })
     .sort((a, b) => { return b.score - a.score })
     .slice(0, 10);
+
+  let userFriendList = userModel._doc.friendsList;
+  let responseArr = [userRepos, userFriendList];
+  return responseArr;
 }
 
 
@@ -48,7 +52,7 @@ router.post('/repos', (req, res) => {
       console.log(err);
       res.status(403).send('error');
     } else {
-      console.log(result);
+      // console.log(result);
       res.status(200).send(result);
     }
   })
@@ -68,6 +72,7 @@ const postUserRepos = async (ghUsername, cb) => {
   const config = getReposByUsername(ghUsername);
 
   try {
+    let cache = {}
     let repos = await axios(config);
     repos = repos.data
       .sort((a, b) => {
@@ -81,19 +86,49 @@ const postUserRepos = async (ghUsername, cb) => {
       }).map((entry, index) => {
         return new Promise(async (resolve, reject) => {
           const result = await saveRepos(entry, ghUsername)
-          resolve(result)
+          resolve(result);
         })
       })
 
     let finalRepoResults = await Promise.all(repos)
+    // console.log(finalRepoResults);
 
     const foreignKeysArr = finalRepoResults.map((model) => {
       return model._doc._id;
     })
-    await saveUser(ghUsername, foreignKeysArr);
 
+    // const fList = finalRepoResults.reduce((friendsList, repoModel) => {
+    //   var publicContributors = repoModel._doc.publicContributors;
+    //   publicContributors.forEach(contributor => {
+    //     if (friendsList.some(potentialFriend => potentialFriend !== contributor.handle) || friendsList.length === 0) {
+    //       friendsList.push(contributor.handle);
+    //       // return [...friendsList, contributor.handle];
+    //     }
+    //   })
+    //   return friendsList;
+    // }, []);
+
+    var friendsList = finalRepoResults.map((repoModel) => {
+      var publicContributors = repoModel._doc.publicContributors;
+      return publicContributors.reduce((total, contributor) => {
+        let test = total.find((item) => {
+          return item === contributor.handle;
+        })
+
+        if (!test) {
+          total.push(contributor.handle)
+        }
+
+        return total;
+      }, [])
+    })
+
+    friendsList = [].concat.apply([], friendsList).filter((friend, index, arr) => { return arr.indexOf(friend) === index });
+
+    await saveUser(ghUsername, foreignKeysArr, friendsList);
+    let responseArr = [finalRepoResults, friendsList];
     // return finalRepoResults;
-    cb(null, finalRepoResults)
+    cb(null, responseArr)
 
   } catch (err) {
     console.log('hello')

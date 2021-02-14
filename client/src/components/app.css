@@ -1,4 +1,4 @@
-#repo-list-title-section {
+#repo-list-title-section, #friends-list-title-section {
   padding-left: 1.5%;
   display: inline-block;
 }
@@ -22,7 +22,7 @@
 #inner-button:hover {
   cursor: pointer;
 }
-#repo-list-title {
+.fortune-title {
   text-decoration: underline;
 }
 
@@ -106,6 +106,15 @@ grid-template-columns: auto auto auto;
 
 .contributor {
     /* background-color: blue; */
+}
+
+#friends-list-container {
+  border: 1px solid black;
+  display: grid;
+  grid-template-columns: auto auto auto auto auto;
+  margin-left: 2.5%;
+  padding-left: 1.5%;
+  /* margin-right: 2.5%; */
 }
 
 

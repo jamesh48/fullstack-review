@@ -38,7 +38,7 @@ class Search extends React.Component {
           : null
         }
       Enter a github username: <input value={term} onChange={onChange} />
-        <button onClick={search}> Add Repos </button>
+        <button onClick={search}> Add {term}'s Repos </button>
         <DropCollections dropCollections={dropCollections} highlighted={highlighted} />
       </div>
     )

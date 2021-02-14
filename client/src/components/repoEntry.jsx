@@ -11,7 +11,7 @@ const RepoEntry = (props) => {
         <h4 className='contributor-title'>Contributors:</h4>
         <div className='contributors-container'>
         {props.repo.publicContributors.map((pContributor, index) => {
-          return <a target='_blank' key={index} href={pContributor.url} className='contributor'>{pContributor.contributor}</a>
+          return <a target='_blank' key={index} href={pContributor.url} className='contributor'>{pContributor.handle}</a>
         })}
         </div>
       {/* </div> */}
