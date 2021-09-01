@@ -1,15 +1,30 @@
 import React from 'react';
 
+// const FriendsList = (props) => {
+//   return props.friendsList !== null ?
+//     <div>
+//       <span id='friends-list-title-section'>
+//         <h3 className='fortune-title'>{props.highlightedUser}'s friends List:</h3>
+//       </span>
+//       <div id='friends-list-container'>
+//         {props.friendsList !== undefined ? props.friendsList.map((friend) => {
+//           return <p className='friend'>{friend}</p>
+//         }) : null}
+//       </div>
+//     </div>
+//     : null
+// }
+
 const FriendsList = (props) => {
-  return props.friendsList !== null ?
+  return props.friendsList ?
     <div>
       <span id='friends-list-title-section'>
         <h3 className='fortune-title'>{props.highlightedUser}'s friends List:</h3>
       </span>
       <div id='friends-list-container'>
-        {props.friendsList !== undefined ? props.friendsList.map((friend) => {
+        {props.friendsList.map((friend) => {
           return <p className='friend'>{friend}</p>
-        }) : null}
+        })}
       </div>
     </div>
     : null

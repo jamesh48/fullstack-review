@@ -131,7 +131,6 @@ const postUserRepos = async (ghUsername, cb) => {
     cb(null, responseArr)
 
   } catch (err) {
-    console.log('hello')
     // do nothing
     // res.status(403).send('error')
     cb(err);
